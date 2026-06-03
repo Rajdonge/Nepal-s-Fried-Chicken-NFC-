@@ -1,0 +1,427 @@
+<!--  Top Bar (Desktop Only) -->
+<div id="top-bar" class="hidden lg:flex fixed top-0 left-0 right-0 bg-gray-800 text-white text-sm z-50 shadow-md">
+  <div class="container mx-auto flex justify-between items-center px-4 py-2">
+    <p class="flex items-center gap-2">
+      <i class="fas fa-store text-orange-400"></i>
+      <span>Welcome to {% if organization.name %}{{ organization.name }}{% else %}Nepal's Fried Chicken{% endif %}</span>
+    </p>
+    <p class="flex items-center gap-2">
+      <i class="fas fa-phone-alt text-orange-400"></i>
+      <span>Need help? Call us:</span>
+      <a href="tel:+{{organization.phone}}" class="hover:text-orange-400 font-semibold transition">
+        +{{organization.phone}}
+      </a>
+    </p>
+    <ul class="hidden md:flex space-x-4 items-center">
+      <!-- Language Selector -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 bg-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-600 transition">
+          <i class="fa-solid fa-earth-americas text-orange-400 text-sm"></i>
+          <select id="custom_translate" class="bg-gray-700 text-white outline-none cursor-pointer text-sm font-medium">
+            <option value="en">🇺🇸 EN</option>
+            <option value="ne">🇳🇵 NP</option>
+          </select>
+        </div>
+      </div>
+
+      {% if organization.phone_secondary %}
+      <a href="https://wa.me/{{ organization.phone_secondary }}" target="_blank" 
+         class="text-white hover:text-green-400 transition text-lg">
+        <i class="fab fa-whatsapp"></i>
+      </a>
+      {% endif %}
+
+      {% if organization.facebook %}
+      <a href="{{ organization.facebook }}" target="_blank" class="text-white hover:text-blue-400 transition text-lg">
+        <i class="fab fa-facebook"></i>
+      </a>
+      {% endif %}
+
+      {% if organization.instagram %}
+      <a href="{{ organization.instagram }}" target="_blank" class="text-white hover:text-pink-400 transition text-lg">
+        <i class="fab fa-instagram"></i>
+      </a>
+      {% endif %}
+
+      {% if organization.twitter %}
+      <a href="{{ organization.twitter }}" target="_blank" class="text-white hover:text-sky-400 transition text-lg">
+        <i class="fab fa-twitter"></i>
+      </a>
+      {% endif %}
+
+      {% if organization.youtube %}
+      <a href="{{ organization.youtube }}" target="_blank" class="text-white hover:text-red-400 transition text-lg">
+        <i class="fab fa-youtube"></i>
+      </a>
+      {% endif %}
+
+      {% if organization.tiktok %}
+      <a href="{{ organization.tiktok }}" target="_blank" class="text-white hover:text-gray-300 transition text-lg">
+        <i class="fab fa-tiktok"></i>
+      </a>
+      {% endif %}
+    </ul>
+  </div>
+</div>
+
+<!-- Main Header -->
+<header id="main-header" class="bg-white shadow-lg fixed top-10 left-0 right-0 z-40 transition-all duration-300">
+  <div class="hidden lg:flex items-center justify-between container mx-auto px-4 py-3">
+    <!-- Logo -->
+    <a href="{% url 'home' %}" class="flex items-center flex-shrink-0">
+      {% if organization.logo %}<img src="{{organization.logo.url}}" alt="Hello Bajar" class="h-12 w-auto">{% endif %}
+    </a>
+
+    <!-- Category Dropdown - Cascading Flyout Menu -->
+    <div class="relative group/shop">
+      <!-- <button class="category-trigger flex items-center px-4 py-2 bg-gray-100 text-gray-900 rounded-lg hover:bg-orange-500 hover:text-white cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md">
+        <i class="fa-solid fa-bars mr-2"></i> 
+        <span class="font-medium">Food Categories</span>
+        <i class="fa-solid fa-chevron-down ml-2 text-xs transition-transform group-hover/shop:rotate-180"></i>
+      </button> -->
+
+      <!-- Level 1: Categories List (Vertical) - Scrollable with left scrollbar -->
+      <div class="absolute top-full left-0 mt-2 w-64 bg-white shadow-2xl rounded-lg border border-gray-100 opacity-0 invisible group-hover/shop:opacity-100 group-hover/shop:visible transition-all duration-200 z-50 max-h-[70vh] overflow-y-auto category-scroll-left">
+        {% for category in categories %}
+        <div class="relative group/category">
+          <!-- Category Item -->
+          <a href="{% url 'category_details' category.slug %}" 
+             class="flex items-center justify-between px-4 py-3 hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0">
+            <div class="flex items-center gap-3">
+              {% if category.image %}
+              
+              <img src="{{ category.image.url }}" class="w-8 h-8 rounded-full object-cover shadow-sm flex-shrink-0" alt="{{ category.name }}">
+              {% else %}
+              <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-tag text-orange-500 text-sm"></i>
+              </div>
+              {% endif %}
+              <span class="text-sm font-medium text-gray-800 group-hover/category:text-orange-600 transition">{{ category.name }}</span>
+            </div>
+            {% if category.subcategories.exists %}
+            <i class="fa-solid fa-chevron-right text-xs text-gray-400 group-hover/category:text-orange-500"></i>
+            {% endif %}
+          </a>
+
+          <!-- Level 2: Subcategories Flyout - Fixed positioning to escape scroll clipping -->
+          {% if category.subcategories.exists %}
+          <div class="subcategory-flyout fixed w-60 bg-white shadow-xl rounded-lg border border-gray-100 opacity-0 invisible group-hover/category:opacity-100 group-hover/category:visible transition-all duration-200 z-[60] max-h-[60vh] overflow-y-auto flyout-scroll-left">
+            {% for subcategory in category.subcategories.all %}
+            {% if subcategory.is_active %}
+            <div class="relative group/sub">
+              <!-- Subcategory Item -->
+              <a href="{% url 'subcategory_details' subcategory.slug %}"
+                 class="flex items-center justify-between px-4 py-2.5 hover:bg-orange-50 transition-colors border-b border-gray-50 last:border-b-0">
+                <div class="flex items-center gap-2">
+                  {% if subcategory.image %}
+                  <i class="fa-solid fa-angle-right text-orange-400 text-xs"></i>
+                  <img src="{{ subcategory.image.url }}" alt="{{ subcategory.name }}" class="w-6 h-6 rounded object-cover flex-shrink-0">
+                  {% else %}
+                  <i class="fa-solid fa-angle-right text-orange-400 text-xs"></i>
+                  {% endif %}
+                  <span class="text-sm text-gray-700 group-hover/sub:text-orange-600 transition">{{ subcategory.name }}</span>
+                </div>
+                {% if subcategory.child_categories.exists %}
+                <i class="fa-solid fa-chevron-right text-[10px] text-gray-400 group-hover/sub:text-orange-500"></i>
+                {% endif %}
+              </a>
+
+              <!-- Level 3: Child Categories Flyout -->
+              {% if subcategory.child_categories.exists %}
+              <div class="child-flyout fixed w-56 bg-white shadow-xl rounded-lg border border-gray-100 opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-200 z-[70] max-h-[50vh] overflow-y-auto flyout-scroll-left">
+                {% for child in subcategory.child_categories.all %}
+                {% if child.is_active %}
+                <a href="{% url 'childcategory_details' child.slug %}"
+                   class="flex items-center gap-2 px-4 py-2.5 hover:bg-orange-50 transition-colors border-b border-gray-50 last:border-b-0">
+                  {% if child.image %}
+                  <i class="fa-solid fa-angle-right text-orange-400 text-xs"></i>
+                  <img src="{{ child.image.url }}" alt="{{ child.name }}" class="w-5 h-5 rounded object-cover flex-shrink-0">
+                  {% else %}
+                  <i class="fa-solid fa-angle-right text-orange-400 text-xs"></i>
+                  {% endif %}
+                  <span class="text-sm text-gray-600 hover:text-orange-600 transition">{{ child.name }}</span>
+                </a>
+                {% endif %}
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="px-4 py-8 text-center text-gray-500">
+          <i class="fa-solid fa-inbox text-3xl mb-2 text-gray-300"></i>
+          <p class="text-sm">No categories available</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Search -->
+    <form action="{% url 'all_collections' %}" method="get" class="flex flex-1 max-w-xl mx-6 border border-gray-300 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search food..." 
+             class="flex-1 px-4 py-2.5 focus:outline-none text-sm bg-gray-50 focus:bg-white transition">
+      <button type="submit" class="px-5 bg-orange-500 text-white hover:bg-orange-600 cursor-pointer transition-colors duration-200">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+    </form>
+
+    <!-- Account & Cart -->
+    <div class="flex items-center space-x-3 flex-shrink-0">
+      {% if user.is_authenticated %}
+      <a href="{% if user.role.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.role.role == 'staff' %}{% url 'staff_dashboard' %}{% elif user.role.role == 'restaurant' %}{% url 'restaurant_dashboard' %}{% else %}{% url 'customer_profile' %}{% endif %}" class="flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-200"> {% if user.profile.avatar %} <img src="{{ user.profile.avatar.url }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-gray-200"> {% else %} <i class="fa-regular fa-user text-lg"></i> {% endif %} <span class="font-medium text-sm">{{ user.first_name|default:"User" }}</span> </a>
+      {% else %}
+      <a href="{% url 'login_page' %}" 
+         class="border border-gray-300 rounded-lg px-3 py-2 flex items-center gap-2 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-200">
+        <i class="fa-regular fa-user text-lg"></i>
+        <span class="font-medium text-sm">Account</span>
+      </a>
+      {% endif %}
+
+      <a href="{% url 'carts' %}" 
+         class="relative border border-gray-300 rounded-lg px-3 py-2 flex items-center gap-2 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-200">
+        <i class="fa-solid fa-cart-shopping text-lg"></i>
+        <span class="font-medium text-sm">Cart</span>
+        <span id="desktopCartBadge" 
+              class="absolute -top-2 -right-2 min-w-[20px] h-5 px-1.5 bg-orange-600 text-white text-xs rounded-full flex items-center justify-center font-semibold shadow-md">
+          {{ cart_count }}
+        </span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Desktop Nav Menu -->
+  <nav class="hidden lg:flex justify-center container mx-auto px-4 py-3 space-x-6 bg-orange-50 shadow-inner text-sm font-medium items-center">
+    <a href="{% url 'home' %}" 
+       class="flex items-center gap-2 pb-1 transition-all duration-200 {% if request.path == '/' %}text-orange-600 font-bold border-b-2 border-orange-600{% else %}text-gray-700 hover:text-orange-600{% endif %}">
+      <i class="fa-solid fa-house"></i> Home
+    </a>
+
+    <a href="{% url 'all_collections' %}" 
+       class="flex items-center gap-2 pb-1 transition-all duration-200 {% if request.path == '/all-collections/' %}text-orange-600 font-bold border-b-2 border-orange-600{% else %}text-gray-700 hover:text-orange-600{% endif %}">
+      <i class="fa-solid fa-th-large"></i> All Food Collections
+    </a>
+
+    <a href="{% url 'restaurants' %}" 
+       class="flex items-center gap-2 pb-1 transition-all duration-200 {% if request.path == '/restaurants/' %}text-orange-600 font-bold border-b-2 border-orange-600{% else %}text-gray-700 hover:text-orange-600{% endif %}">
+      <i class="fa-solid fa-store"></i> All Restaurants
+    </a>
+
+    <a href="{% url 'new_arrivals' %}" 
+       class="flex items-center gap-2 pb-1 transition-all duration-200 {% if request.path == '/new-arrivals/' %}text-orange-600 font-bold border-b-2 border-orange-600{% else %}text-gray-700 hover:text-orange-600{% endif %}">
+      <i class="fa-solid fa-star"></i> New Menu Items
+    </a>
+
+    {% if not user.is_authenticated %}
+    <a href="{% url 'restaurant_partner_page'%}" 
+       class="px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-105">
+      <i class="fa-solid fa-user-plus"></i> Add Your Restaurant
+    </a>
+    {% endif %}
+    {% comment %} <button onclick="window.location.href='http://hellobajar.com'" 
+    class="btn btn-primary">Go to Ecommerce Section 
+  </button> {% endcomment %}
+  </nav>
+</header>
+
+<!--  Mobile Navigation -->
+<!-- Top Row: Logo + Search + Language + Cart -->
+<div class="lg:hidden fixed top-0 inset-x-0 bg-white shadow-md z-50">
+   <div class="flex items-center justify-between px-3 py-2">
+    <!-- Logo -->
+    <a href="{% url 'home' %}" class="flex items-center flex-shrink-0">
+      {% if organization.logo %}<img src="{{organization.logo.url}}" alt="Hello Bajar" class="h-9 w-auto">{% endif %}
+    </a>
+
+    <!-- Search -->
+    <form action="{% url 'all_collections' %}" method="get" class="flex-1 mx-2">
+      <div class="relative">
+        <input name="q" type="text" value="{{ query|default:'' }}" placeholder="Search..."
+          class="w-full px-3 py-2 pr-9 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none shadow-sm bg-gray-50">
+        <button type="submit" class="absolute right-2 top-2.5 text-gray-500 hover:text-orange-500">
+          <i class="fa-solid fa-magnifying-glass text-sm"></i>
+        </button>
+      </div>
+    </form>
+
+    <!-- Language Selector (Mobile) -->
+    <div class="flex items-center gap-1 flex-shrink-0">
+      <select id="custom_translate_mobile" class="bg-gray-100 text-gray-700 px-2 py-1.5 rounded-md text-xs outline-none cursor-pointer font-medium border border-gray-200">
+        <option value="en">EN</option>
+        <option value="ne">NP</option>
+      </select>
+    </div>
+
+    <!-- Cart -->
+    <a href="{% url 'carts' %}" class="relative p-2 rounded-lg hover:bg-orange-100 transition duration-200 flex-shrink-0">
+      <i class="fa-solid fa-cart-shopping text-lg text-gray-700"></i>
+      <span id="mobileCartBadge"
+        class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-orange-500 text-white text-[10px] rounded-full flex items-center justify-center font-semibold">
+        {{ cart_count }}
+      </span>
+    </a>
+  </div>
+</div>
+
+<!-- Bottom Navigation (Fixed) -->
+<div class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 shadow-2xl py-2 text-xs font-medium text-gray-700 z-40">
+  <div class="flex justify-around items-center">
+    <a href="{% url 'home' %}" 
+       class="flex flex-col items-center gap-1 transition-all duration-200 {% if request.path == '/' %}text-orange-600 scale-110{% else %}hover:text-orange-600{% endif %}">
+      <i class="fa-solid fa-house text-lg"></i>
+      <span class="text-[10px]">Home</span>
+    </a>
+
+    <a href="{% url 'all_collections' %}" 
+       class="flex flex-col items-center gap-1 transition-all duration-200 {% if request.path == '/all-collections/' %}text-orange-600 scale-110{% else %}hover:text-orange-600{% endif %}">
+      <i class="fa-solid fa-layer-group text-lg"></i>
+      <span class="text-[10px]">Collections</span>
+    </a>
+
+    <a href="{% url 'restaurants' %}" 
+       class="flex flex-col items-center gap-1 transition-all duration-200 {% if request.path == '/restaurants/' %}text-orange-600 scale-110{% else %}hover:text-orange-600{% endif %}">
+      <i class="fa-solid fa-store text-lg"></i>
+      <span class="text-[10px]">restaurants</span>
+    </a>
+
+    <a href="{% url 'new_arrivals' %}" 
+       class="flex flex-col items-center gap-1 transition-all duration-200 {% if request.path == '/new-arrivals/' %}text-orange-600 scale-110{% else %}hover:text-orange-600{% endif %}">
+      <i class="fa-solid fa-star text-lg"></i>
+      <span class="text-[10px]">New</span>
+    </a>
+
+    <a href="{% if user.is_authenticated %}{% if user.role.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.role.role == 'staff' %}{% url 'staff_dashboard' %}{% elif user.role.role == 'restaurant' %}{% url 'restaurant_dashboard' %}{% else %}{% url 'customer_profile' %}{% endif %}{% else %}{% url 'login_page' %}{% endif %}"
+       class="flex flex-col items-center gap-1 transition-all duration-200 {% if request.path == '/login/' %}text-orange-600 scale-110{% else %}hover:text-orange-600{% endif %}"> 
+      <i class="fa-regular fa-user text-lg"></i> 
+      <span class="text-[10px]">Account</span> </a>
+  </div>
+</div>
+
+<style>
+  /* ==========================================
+     SCROLLBAR HIDING
+     ========================================== */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* ==========================================
+     CATEGORY SCROLL - LEFT SIDE SCROLLBAR
+     ========================================== */
+  .category-scroll-left {
+    direction: rtl;
+  }
+  .category-scroll-left > * {
+    direction: ltr;
+  }
+  .category-scroll-left::-webkit-scrollbar {
+    width: 6px;
+  }
+  .category-scroll-left::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  .category-scroll-left::-webkit-scrollbar-thumb {
+    background: #fb923c;
+    border-radius: 3px;
+  }
+  .category-scroll-left::-webkit-scrollbar-thumb:hover {
+    background: #f97316;
+  }
+
+  /* ==========================================
+     FLYOUT SCROLL - LEFT SIDE SCROLLBAR
+     ========================================== */
+  .flyout-scroll-left {
+    direction: rtl;
+  }
+  .flyout-scroll-left > * {
+    direction: ltr;
+  }
+  .flyout-scroll-left::-webkit-scrollbar {
+    width: 5px;
+  }
+  .flyout-scroll-left::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  .flyout-scroll-left::-webkit-scrollbar-thumb {
+    background: #fb923c;
+    border-radius: 3px;
+  }
+  .flyout-scroll-left::-webkit-scrollbar-thumb:hover {
+    background: #f97316;
+  }
+
+  /* ==========================================
+     MOBILE SUBCATEGORY ACCORDION
+     ========================================== */
+  .subcategory-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .subcategory-list.active {
+    max-height: 600px;
+  }
+
+  .toggle-subcategory i {
+    transition: transform 0.3s ease;
+  }
+
+  .toggle-subcategory.active i {
+    transform: rotate(180deg);
+  }
+
+  /* MOBILE CHILD-LIST (accordion) - scoped to mobile sidebar */
+  #mobileCategorySidebar .child-list { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+  #mobileCategorySidebar .child-list.active { max-height: 400px; }
+  #mobileCategorySidebar .toggle-child i { transition: transform 0.25s ease; }
+  #mobileCategorySidebar .toggle-child.active i { transform: rotate(180deg); }
+</style>
+
+<script>
+// ==========================================
+// SYNC MOBILE LANGUAGE SELECTOR
+// ==========================================
+document.getElementById('custom_translate_mobile')?.addEventListener('change', function() {
+  const desktopSelect = document.getElementById('custom_translate');
+  if (desktopSelect) {
+    desktopSelect.value = this.value;
+    desktopSelect.dispatchEvent(new Event('change'));
+  }
+});
+
+// ==========================================
+// POSITION FIXED FLYOUTS ON HOVER
+// ==========================================
+document.querySelectorAll('.group\\/category').forEach(categoryItem => {
+  const flyout = categoryItem.querySelector('.subcategory-flyout');
+  if (!flyout) return;
+  
+  categoryItem.addEventListener('mouseenter', function() {
+    const rect = this.getBoundingClientRect();
+    flyout.style.left = (rect.right + 4) + 'px';
+    flyout.style.top = rect.top + 'px';
+  });
+});
+
+document.querySelectorAll('.group\\/sub').forEach(subItem => {
+  const childFlyout = subItem.querySelector('.child-flyout');
+  if (!childFlyout) return;
+  
+  subItem.addEventListener('mouseenter', function() {
+    const rect = this.getBoundingClientRect();
+    childFlyout.style.left = (rect.right + 4) + 'px';
+    childFlyout.style.top = rect.top + 'px';
+  });
+});
+</script>

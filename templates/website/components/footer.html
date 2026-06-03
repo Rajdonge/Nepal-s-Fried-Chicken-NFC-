@@ -1,0 +1,101 @@
+<!-- Footer Section -->
+<footer class="mt-26 px-8 bg-gray-50 pt-12 text-gray-700 border-t border-gray-200">
+  <div class="container mx-auto px-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-16 justify-items-center lg:justify-items-stretch text-center lg:text-left">
+
+      <!-- Contact & Call Area -->
+      <div class="space-y-4 flex flex-col items-center lg:items-start">
+        <h3 class="text-lg font-semibold mb-2">Have Questions?</h3>
+        <div class="flex items-center justify-center lg:justify-start space-x-3">
+          <div class="text-[var(--primary)] text-xl"><i class="fa-solid fa-phone-rotary"></i></div>
+          <div class="space-y-1">
+            <p class="text-sm text-gray-600">Reach us anytime</p>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 justify-center lg:justify-start">
+              {% if organization.phone %}
+              <a href="tel:+977{{ organization.phone }}" 
+                 class="text-[var(--bg-brown)] hover:text-[var(--primary)] transition underline-offset-2 hover:underline">
+                +977-{{ organization.phone }}
+              </a>
+              {% endif %}
+             
+            </div>
+          </div>
+        </div>
+<ul class="space-y-1 text-sm">
+  <li class="flex items-center gap-2">
+    <i class="fa-solid fa-envelope text-[var(--primary)]"></i>
+    <a href="mailto:{{organization.email}}" class="hover:underline hover:text-[var(--primary)] transition">{{organization.email}}</a>
+  </li>
+  <li class="flex items-center gap-2">
+    <i class="fa-brands fa-whatsapp text-green-600"></i>
+    <a href="https://wa.me/{{organization.phone_secondary}}" target="_blank" class="hover:underline hover:text-green-600 transition">Chat on WhatsApp</a>
+  </li>
+</ul>
+
+        <div class="flex justify-center lg:justify-start items-center space-x-3 mt-3">
+          <span class="font-medium text-sm">Follow Us:</span>
+          {% if organization.facebook %}
+          <a href="{{organization.facebook}}" target="_blank" class="text-gray-600 hover:text-blue-600 transition"><i class="fa-brands fa-facebook-f"></i></a>
+          {% endif %}
+          {% if organization.twitter %}
+          <a href="{{organization.twitter}}" target="_blank" class="text-gray-600 hover:text-sky-500 transition"><i class="fa-brands fa-twitter"></i></a>
+          {% endif %}
+          {% if organization.youtube %}
+          <a href="{{organization.youtube}}" target="_blank" class="text-gray-600 hover:text-red-600 transition"><i class="fa-brands fa-youtube"></i></a>
+          {% endif %}
+          {% if organization.instagram %}
+          <a href="{{organization.instagram}}" target="_blank" class="text-gray-600 hover:text-pink-500 transition"><i class="fa-brands fa-instagram"></i></a>
+          {% endif %}
+          {% if organization.tiktok %}
+          <a href="{{organization.tiktok}}" target="_blank" class="text-gray-600 hover:text-black transition"><i class="fa-brands fa-tiktok"></i></a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="space-y-4 flex flex-col items-center lg:items-start">
+        <h3 class="text-lg font-semibold mb-2">Quick Links</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="" class="hover:text-[var(--primary)] hover:underline transition">Terms of Service</a></li>
+          <li><a href="{% url 'privacy_policy'%}" class="hover:text-[var(--primary)] hover:underline transition">Privacy Policy</a></li>
+          <li><a href="" class="hover:text-[var(--primary)] hover:underline transition">Refund & Return Policy</a></li>
+        </ul>
+      </div>
+
+
+            <div class="space-y-4 flex flex-col items-center lg:items-start">
+        <h3 class="text-lg font-semibold mb-2">Become a Restaurant Partner</h3>
+        <p class="text-sm text-gray-600 text-center lg:text-left">Start selling your food today</p>
+        <a href="{% url 'restaurant_partner_page'%}" class="bg-[var(--bg-brown)]  hover:bg-[var(--primary)] text-white font-semibold px-6 py-2 rounded hover:bg-[var(--bg-brown)] transition-all inline-block">
+          Become a Restaurant Partner
+        </a>
+      </div>
+      
+      <!-- Newsletter Signup -->
+      <div class="space-y-4 flex flex-col items-center lg:items-start">
+        <h3 class="text-lg font-semibold mb-2">Newsletter Signup</h3>
+        <p class="text-sm mb-2 text-center lg:text-left">Subscribe to receive updates, new food items, and special offers.</p>
+        <form id="subscribe-form" class="flex flex-col space-y-2 w-full max-w-xs mx-auto lg:mx-0">
+          <input type="email" name="email" id="email" placeholder="Your email address" required
+                 class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+          <button type="submit" class="bg-[var(--bg-brown)] text-white px-4 py-2 rounded hover:bg-[var(--primary)] transition-all">Subscribe</button>
+          <div id="success-message" class="text-green-600 text-sm hidden"></div>
+        </form>
+      </div>
+
+
+
+
+    </div>
+
+    <!-- Footer Bottom Section -->
+    <div class="bg-white border-t border-gray-200 py-6 mt-8">
+      <div class="container mx-auto px-4 flex flex-col md:flex-row items-center justify-center md:justify-between space-y-4 md:space-y-0 text-center">
+        <!-- Copyright -->
+        <div class="text-gray-500 text-sm">
+          &copy; 2025 {% if organization.name %}{{ organization.name }}{% else %}Nepal's Fried Chicken{% endif %}. All rights reserved.
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

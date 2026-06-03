@@ -1,0 +1,86 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}Vendor Dashboard - KYC Pending{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8 sm:py-12">
+    <div class="max-w-lg w-full bg-white rounded-2xl shadow-xl p-6 sm:p-8 md:p-10 text-center">
+
+        <!-- Warning Icon -->
+        <div class="mb-4 sm:mb-6">
+            <i class="fas fa-user-clock text-5xl sm:text-6xl md:text-7xl text-yellow-500"></i>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2 sm:mb-3 px-2">
+            KYC Verification Pending
+        </h1>
+        
+        <!-- Description -->
+        <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 px-2 leading-relaxed">
+            Your account verification is currently 
+            <span class="font-semibold text-yellow-600">{{ vendor.verification_status|title }}</span>.
+            You will be able to access your vendor dashboard once your KYC is approved.
+        </p>
+
+        {% if vendor.verification_status == 'rejected' %}
+        <!-- Rejected Box -->
+        <div class="bg-red-50 p-4 sm:p-5 mb-6 sm:mb-8 text-left rounded-lg shadow-sm">
+            <div class="flex items-start gap-3 mb-3">
+                <i class="fas fa-exclamation-circle text-red-500 text-xl mt-0.5 flex-shrink-0"></i>
+                <p class="text-red-700 text-sm sm:text-base">
+                    <span class="font-semibold block sm:inline">Verification Rejected:</span> 
+                    <span class="block sm:inline mt-1 sm:mt-0">Your KYC submission was rejected. Please review the requirements and resubmit.</span>
+                </p>
+            </div>
+
+            {% if vendor.rejection_reason %}
+            <div class="bg-red-100 rounded-md p-3 mt-3">
+                <p class="text-red-700 text-xs sm:text-sm">
+                    <span class="font-semibold">Reason:</span> {{ vendor.rejection_reason }}
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Resubmit Button -->
+            <a href="{% url 'restaurant_kyc_resubmit'%}" 
+               class="mt-4 block text-center w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-red-500 text-white text-sm sm:text-base font-semibold rounded-lg hover:bg-red-600 active:bg-red-700 transition-colors shadow-md hover:shadow-lg">
+                <i class="fas fa-redo-alt mr-2"></i>Resubmit KYC Form
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Icon Illustration -->
+        <div class="mb-6 sm:mb-8">
+            <i class="fas fa-id-card text-6xl sm:text-7xl md:text-8xl text-gray-200"></i>
+        </div>
+
+        <!-- Info Box -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 sm:mb-8">
+            <div class="flex items-start gap-3 text-left">
+                <i class="fas fa-info-circle text-blue-500 text-lg mt-0.5 flex-shrink-0"></i>
+                <p class="text-xs sm:text-sm text-blue-700">
+                    Verification typically takes <span class="font-semibold">24-48 hours</span>. 
+                    You'll receive an email notification once your account is reviewed.
+                </p>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <a href="{% url 'home' %}" 
+               class="flex-1 inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-500 text-white text-sm sm:text-base font-semibold rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-colors shadow-md hover:shadow-lg">
+                <i class="fas fa-home mr-2"></i>
+                <span>Go to Home</span>
+            </a>
+            
+            <a href="mailto:support@example.com" 
+               class="flex-1 inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-100 text-gray-700 text-sm sm:text-base font-semibold rounded-lg hover:bg-gray-200 active:bg-gray-300 transition-colors border border-gray-300">
+                <i class="fas fa-envelope mr-2"></i>
+                <span>Contact Support</span>
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Add Child Category</h1>
+    <a href="{% url 'admin_childcategory_list' %}" class="text-sm text-blue-600 hover:text-blue-800">Back to list</a>
+  </div>
+
+  <form method="post" action="{% url 'admin_childcategory_add' %}" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Name -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Name</label>
+      <input type="text" name="name" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+    </div>
+
+
+    <!-- Category -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Category</label>
+      <select name="category" id="category" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+        <option value="">Select Category</option>
+        {% for category in categories %}
+          <option value="{{ category.id }}">{{ category.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Subcategory -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Subcategory</label>
+      <select name="subcategory" id="subcategory" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+        <option value="">Select Subcategory</option>
+      </select>
+    </div>
+
+    
+    <!-- Image -->
+<div>
+  <label class="block text-sm font-medium text-gray-700">Image</label>
+  <input type="file" name="image" accept="image/*" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5">
+</div>
+
+
+    <div class="pt-4">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Save Child Category</button>
+    </div>
+  </form>
+</div>
+
+<!-- JS: Load subcategories dynamically -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const categorySelect = document.getElementById('category');
+  const subcatSelect = document.getElementById('subcategory');
+
+  categorySelect.addEventListener('change', function() {
+    const categoryId = this.value;
+
+    if (!categoryId) {
+      subcatSelect.innerHTML = '<option value="">Select Subcategory</option>';
+      return;
+    }
+
+    // Use Django URL tag to ensure the correct path
+    const url = "{% url 'get_subcategories' 0 %}".replace('0', categoryId);
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        subcatSelect.innerHTML = '<option value="">Select Subcategory</option>';
+        data.forEach(subcat => {
+          const option = document.createElement('option');
+          option.value = subcat.id;
+          option.textContent = subcat.name;
+          subcatSelect.appendChild(option);
+        });
+      })
+      .catch(err => {
+        console.error('Error loading subcategories:', err);
+        subcatSelect.innerHTML = '<option value="">Select Subcategory</option>';
+      });
+  });
+});
+</script>
+
+{% endblock %}

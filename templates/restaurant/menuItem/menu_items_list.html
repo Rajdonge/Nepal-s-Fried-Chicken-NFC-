@@ -1,0 +1,160 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-utensils"></i> Menu Items</h1>
+    <a href="{% url 'restaurant_menu_item_add' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+      <i class="fas fa-plus"></i> Add Menu Item
+    </a>
+  </div>
+
+  <!-- Filter Form -->
+  <form method="get" class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search by item name..." class="border border-gray-300 rounded-lg p-2.5" />
+
+    <select name="category" class="border border-gray-300 rounded-lg p-2.5">
+      <option value="">All Sections</option>
+      {% for s in sections %}
+        <option value="{{ s.id }}" {% if request.GET.category|default:'' == s.id|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>
+      {% endfor %}
+    </select>
+
+    <div class="md:col-span-1 flex gap-2">
+      <button class="bg-gray-800 text-white px-4 py-2 rounded-lg flex-1 hover:bg-gray-900 transition">Filter</button>
+      <a href="?" class="border border-gray-300 px-4 py-2 rounded-lg flex-1 text-center text-gray-700 hover:bg-gray-100 transition">Reset</a>
+    </div>
+  </form>
+
+  <!-- Menu Items Table -->
+  <div class="overflow-x-auto">
+    <table id="menuItemsTable" class="display w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 text-left">ID</th>
+          <th class="px-4 py-3 text-left">Image</th>
+          <th class="px-4 py-3 text-left">Name</th>
+          <th class="px-4 py-3 text-left">Section</th>
+          <th class="px-4 py-3 text-left">Price</th>
+          <th class="px-4 py-3 text-left">Type</th>
+          <th class="px-4 py-3 text-left">Available</th>
+          <th class="px-4 py-3 text-left">Featured</th>
+          <th class="px-4 py-3 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in menu_items %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3">{{ item.id }}</td>
+
+          <!-- Main Image -->
+          <td class="px-4 py-3">
+            {% if item.image %}
+              <img src="{{ item.image.url }}" alt="{{ item.name }}" class="h-10 w-10 object-cover rounded"/>
+            {% else %}
+              <span class="text-gray-400">No image</span>
+            {% endif %}
+          </td>
+
+          <td class="px-4 py-3 font-medium">{{ item.name|truncatechars:25 }}</td>
+
+          <!-- Menu Section -->
+          <td class="px-4 py-3">
+            {% if item.section %}
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                {{ item.section.name }}
+              </span>
+            {% else %}
+              <span class="text-gray-400 text-xs">-</span>
+            {% endif %}
+          </td>
+
+          <!-- Price -->
+          <td class="px-4 py-3 font-semibold">Rs. {{ item.price }}</td>
+
+          <!-- Vegetarian/Non-Vegetarian -->
+          <td class="px-4 py-3">
+            {% if item.is_vegetarian %}
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                <i class="fas fa-leaf mr-1"></i> Vegetarian
+              </span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                Non-Veg
+              </span>
+            {% endif %}
+          </td>
+
+          <!-- Available -->
+          <td class="px-4 py-3">
+            {% if item.is_available %}
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                <i class="fas fa-check-circle mr-1"></i> Yes
+              </span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                <i class="fas fa-times-circle mr-1"></i> No
+              </span>
+            {% endif %}
+          </td>
+
+          <!-- Featured Badge -->
+          <td class="px-4 py-3">
+            {% if item.is_featured %}
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                <i class="fas fa-star mr-1"></i> Yes
+              </span>
+            {% else %}
+              <span class="text-gray-400 text-xs">No</span>
+            {% endif %}
+          </td>
+
+          <!-- Actions with Icons -->
+          <td class="px-4 py-3 text-center">
+            <div class="inline-flex items-center space-x-3 justify-center">
+              <a href="{% url 'restaurant_menu_item_update' item.id %}" class="text-blue-600 hover:text-blue-800" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+              <a href="{% url 'restaurant_menu_item_delete' item.id %}" class="text-red-600 hover:text-red-800" title="Delete" onclick="return confirm('Delete this menu item?')">
+                <i class="fas fa-trash-alt"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" class="px-4 py-6 text-center text-gray-500">
+            <i class="fas fa-inbox text-2xl mb-2"></i>
+            <p>No menu items found.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  $(document).ready(function () {
+    $('#menuItemsTable').DataTable({
+      pageLength: 10,
+      lengthChange: true,
+      searching: true,
+      ordering: true,
+      responsive: true,
+      language: {
+        search: "_INPUT_",
+        searchPlaceholder: "Search menu items...",
+        emptyTable: "No menu items found."
+      },
+      columnDefs: [
+        { orderable: false, targets: [1, 8] } // Disable sorting on images and actions
+      ]
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6 max-w-3xl mx-auto mt-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Edit Banner</h1>
+    <a href="{% url 'admin_banners_list' %}" class="text-blue-600 hover:text-blue-800">Back to Banners</a>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="space-y-5">
+    {% csrf_token %}
+
+    <!-- Title -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+      <input type="text" name="title" value="{{ banner.title }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    </div>
+
+    <!-- Link -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Link (Optional)</label>
+      <input type="url" name="link" value="{{ banner.link }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://example.com" />
+    </div>
+
+    <!-- Page Selection -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Page</label>
+      <select name="page" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        {% for value, label in page_choices %}
+          {% if value in used_pages and value != banner.page %}
+            <option value="{{ value }}" disabled>{{ label }} (Already Added)</option>
+          {% else %}
+            <option value="{{ value }}" {% if banner.page == value %}selected{% endif %}>{{ label }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      <p class="text-gray-500 text-xs mt-1">Only one banner is allowed per page.</p>
+    </div>
+
+    <!-- Existing Image -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Existing Image</label>
+      {% if banner.image %}
+        <img src="{{ banner.image.url }}" class="h-20 w-40 object-cover rounded mb-2 border" />
+      {% else %}
+        <p class="text-gray-500 text-sm">No image uploaded yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- Upload New Image -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Upload New Image</label>
+      <input type="file" name="image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <p class="text-gray-500 text-xs mt-1">Uploading a new image will replace the existing one.</p>
+    </div>
+
+    <!-- Active Checkbox -->
+    <div class="flex items-center gap-2">
+      <input type="checkbox" name="is_active" id="is_active" {% if banner.is_active %}checked{% endif %} class="h-4 w-4 rounded border-gray-300">
+      <label for="is_active" class="text-sm text-gray-700">Active</label>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex justify-end gap-3">
+      <a href="{% url 'admin_banners_list' %}" class="px-4 py-2 rounded-lg border hover:bg-gray-100">Cancel</a>
+      <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">Update</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

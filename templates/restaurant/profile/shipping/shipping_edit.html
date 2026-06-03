@@ -1,0 +1,48 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6 max-w-xl mx-auto">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">
+      <i class="fas fa-truck mr-2"></i>Edit Shipping Cost
+    </h1>
+    <a href="{% url 'admin_shipping_cost' %}" class="text-blue-600 hover:text-blue-800">Back</a>
+  </div>
+
+  <form method="post" class="space-y-5">
+    {% csrf_token %}
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Shipping Cost (Rs)</label>
+      <input 
+        type="number" 
+        name="cost" 
+        step="0.01" 
+        required 
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring focus:ring-blue-100"
+        value="{{ shipping_cost.cost }}"
+      />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Tax (%)</label>
+      <input 
+        type="number" 
+        name="tax" 
+        step="0.01" 
+        required 
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring focus:ring-blue-100"
+        value="{{ shipping_cost.tax }}"
+      />
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <a href="{% url 'admin_shipping_cost' %}" class="px-4 py-2 rounded-lg border border-gray-300">Cancel</a>
+      <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">
+        Update
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

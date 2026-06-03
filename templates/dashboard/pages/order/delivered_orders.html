@@ -1,0 +1,271 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<style>
+  .product-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .product-preview:last-child {
+    margin-bottom: 0;
+  }
+  .product-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+  }
+  .product-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .product-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f2937;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .product-meta {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+  .variant-badge {
+    display: inline-block;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    color: #4b5563;
+    margin-right: 4px;
+    margin-top: 2px;
+  }
+  .more-items {
+    font-size: 11px;
+    color: #6b7280;
+    font-style: italic;
+    margin-top: 4px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-check-circle"></i> Delivered Orders</h1>
+    <div class="space-x-2">
+      <a href="{% url 'admin_orders_list' %}" class="text-sm text-blue-600 hover:text-blue-800">All Orders</a>
+      <a href="{% url 'admin_orders_pending' %}" class="text-sm text-yellow-700 hover:text-yellow-800">Pending</a>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table id="deliveredOrdersTable" class="display w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Products</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th>Delivered At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <!-- Order Number -->
+          <td>
+            <span class="font-semibold text-gray-900">{{ order.order_number }}</span>
+            <div class="text-xs text-gray-500">{{ order.city }}</div>
+            <div class="text-xs text-gray-500">
+              {% for item in order.items.all %}
+                {% if forloop.first %}
+                (
+                  {{ item.menu_item.restaurant.restaurant_name }}
+                )
+                {% endif %}
+              {% endfor %}
+            </div>
+
+          </td>
+          
+          <!-- Customer -->
+          <td>
+            <div class="font-medium text-gray-900">{{ order.full_name }}</div>
+            <div class="text-xs text-gray-500">{{ order.email }}</div>
+            <div class="text-xs text-gray-500">{{ order.phone }}</div>
+          </td>
+          
+          <!-- Products with Images -->
+          <td style="max-width: 300px;">
+            {% with order.items.all as items %}
+              {% for item in items|slice:":2" %}
+              <div class="product-preview">
+                {% if item.menu_item.image %}
+                <img src="{{ item.menu_item.image.url }}" 
+                     alt="{{ item.menu_item.name }}" 
+                     class="product-img">
+                {% else %}
+                <div class="product-img bg-gray-200 flex items-center justify-center">
+                  <i class="fas fa-image text-gray-400 text-xs"></i>
+                </div>
+                {% endif %}
+                
+                <div class="product-info">
+                  <div class="product-name">{{ item.menu_item.name }}</div>
+                  <div class="product-meta">
+                    Qty: {{ item.quantity }} × Rs {{ item.price|floatformat:0 }}
+                  </div>
+                  
+                  <!-- Display Variants -->
+                  {% if item.variant.all %}
+                  <div>
+                    {% for variant in item.variant.all %}
+                    <span class="variant-badge">{{ variant.name }}</span>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+              
+              {% if items.count > 2 %}
+              <div class="more-items">
+                + {{ items.count|add:"-2" }} more item{{ items.count|add:"-2"|pluralize }}
+              </div>
+              {% endif %}
+            {% endwith %}
+          </td>
+          
+          <!-- Total Items -->
+          <td class="text-center">
+            <span class="inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-800 rounded-full font-semibold text-xs">
+              {{ order.items.count }}
+            </span>
+          </td>
+          
+          <!-- Total Price -->
+          <td>
+            <span class="font-bold text-gray-900">Rs {{ order.total|floatformat:0 }}</span>
+          </td>
+          
+          <!-- Payment Status -->
+          <td>
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold
+              {% if order.payment_status == 'paid' %}bg-green-100 text-green-800
+              {% elif order.payment_status == 'unpaid' %}bg-yellow-100 text-yellow-800
+              {% elif order.payment_status == 'failed' %}bg-red-100 text-red-800
+              {% elif order.payment_status == 'refunded' %}bg-gray-100 text-gray-800
+              {% endif %}">
+              {% for value,label in order_model.PAYMENT_STATUS_CHOICES %}
+                {% if order.payment_status == value %}{{ label }}{% endif %}
+              {% endfor %}
+            </span>
+          </td>
+          
+          <!-- Order Status -->
+          <td>
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+              <i class="fas fa-check-circle mr-1"></i>
+              {% for value,label in order_model.STATUS_CHOICES %}
+                {% if order.status == value %}{{ label }}{% endif %}
+              {% endfor %}
+            </span>
+          </td>
+          
+          <!-- Delivered At -->
+          <td>
+            {% if order.delivered_at %}
+              <div class="text-xs">{{ order.delivered_at|date:"M d, Y" }}</div>
+              <div class="text-xs text-gray-500">{{ order.delivered_at|date:"h:i A" }}</div>
+            {% else %}
+              <span class="text-xs text-gray-400">-</span>
+            {% endif %}
+          </td>
+          
+          <!-- Actions -->
+          <td class="text-center">
+            <div class="flex justify-center gap-2">
+              <!-- View Details -->
+              <a href="{% url 'admin_order_details' order.order_number %}" 
+                 class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                 title="View Details">
+                <i class="fa-solid fa-eye"></i>
+              </a>
+              
+              <!-- View Invoices -->
+              <a href="{% url 'admin_orders_invoice_list' order.order_number %}" 
+                 class="inline-flex items-center justify-center w-8 h-8 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                 title="View Invoices">
+                <i class="fa-solid fa-file-invoice"></i>
+              </a>
+              
+              <!-- Delete -->
+              <a href="{% url 'admin_order_delete' order.order_number %}" 
+                 class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                 onclick="return confirm('Delete this order and all related data?')"
+                 title="Delete Order">
+                <i class="fa-solid fa-trash"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" class="text-center text-gray-500 py-12">
+            <i class="fas fa-check-circle text-4xl text-gray-300 mb-3"></i>
+            <div class="font-medium">No delivered orders found.</div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#deliveredOrdersTable').DataTable({
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50],
+        ordering: true,
+        order: [[7, 'desc']], // Default sorting by Delivered date
+        columnDefs: [
+            { orderable: false, targets: [2, 8] }, // Products and Actions columns not sortable
+            { width: '300px', targets: 2 } // Fixed width for products column
+        ],
+        searching: true,
+        language: {
+            lengthMenu: "Show _MENU_ orders",
+            info: "Showing _START_ to _END_ of _TOTAL_ orders",
+            emptyTable: "No delivered orders available",
+            search: "_INPUT_",
+            searchPlaceholder: "Search orders..."
+        }
+    });
+});
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,39 @@
+<nav class="navbar bg-white border-b border-gray-200 fixed top-0 md:left-[290px] left-0 right-0 z-40 flex items-center justify-between px-6 py-3 shadow-sm">
+  <div class="flex items-center">
+    <button id="mobile-menu-button" class="md:hidden mr-4 text-gray-600 hover:text-blue-600">
+      <i class="fas fa-bars"></i>
+    </button>
+
+   <span class="text-xl font-bold text-blue-600">
+  {% if request.user.role %}
+    {% if request.user.role.role|lower == 'admin' %}
+      Admin
+    {% elif request.user.role.role|lower == 'staff' %}
+      Staff
+    {% elif request.user.role.role|lower == 'vendor' %}
+      Vendor
+    {% else %}
+      User
+    {% endif %}
+  {% else %}
+    User
+  {% endif %}
+  </span>
+  </div>
+  
+  <div class="flex items-center space-x-4">
+    <span class="text-sm font-medium text-gray-700">Hello, {{user.first_name}} {{user.last_name}}</span>
+
+    <!-- Profile Icon -->
+    <a href="" class="hover:text-blue-600 transition-colors duration-200" title="Profile" aria-label="Profile">
+      <i class="fas fa-user text-gray-600"></i>
+    </a>
+
+
+
+    <!-- Logout Icon -->
+    <a href="{% url 'logout'%}" class="hover:text-blue-600 transition-colors duration-200" title="Logout" aria-label="Logout">
+      <i class="fas fa-sign-out-alt text-gray-600"></i>
+    </a>
+  </div>
+</nav>

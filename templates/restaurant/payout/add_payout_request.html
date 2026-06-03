@@ -1,0 +1,110 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100 flex items-center justify-center px-4 py-2 md:py-8">
+
+  <div class="relative w-full max-w-md">
+    <!-- Decorative Elements -->
+    <div class="absolute -top-4 -left-4 w-24 h-24 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
+    <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-700"></div>
+    
+    <!-- Main Card -->
+    <div class="relative bg-white shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-100 overflow-hidden">
+      
+      <!-- Gradient Header Bar -->
+      <div class="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+      
+      <div class="px-5 py-8 sm:px-8 sm:py-10">
+        
+        <!-- Header Section -->
+        <div class="text-center mb-8 sm:mb-10">
+          <!-- Icon -->
+          <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4 shadow-lg">
+            <i class="fas fa-wallet text-white text-2xl sm:text-3xl"></i>
+          </div>
+          
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-2">Request Payout</h2>
+          <p class="text-gray-500 text-xs sm:text-sm">Withdraw your earnings to your account</p>
+          
+          <!-- Balance Display -->
+          <div class="mt-5 sm:mt-6 inline-flex items-center gap-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full border border-green-200">
+            <i class="fas fa-coins text-green-600 text-sm sm:text-base"></i>
+            <div class="text-left">
+              <p class="text-xs text-gray-600 font-medium">Available Balance</p>
+              <p class="text-lg sm:text-xl font-bold text-green-600">Rs. {{ available_balance|floatformat:2 }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" class="space-y-6">
+          {% csrf_token %}
+
+          <!-- Amount Input -->
+          <div class="space-y-2">
+            <label for="requested_amount" class="block text-sm font-semibold text-gray-700">
+              Withdrawal Amount
+            </label>
+            <div class="relative group">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
+                <i class="fas fa-money-bill-wave text-lg"></i>
+              </span>
+              <input 
+                type="number" 
+                step="0.01" 
+                min="0.01" 
+                max="{{ available_balance }}"
+                name="requested_amount" 
+                id="requested_amount" 
+                required
+                class="w-full pl-12 pr-4 py-3.5 sm:py-4 text-base sm:text-lg font-medium rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none"
+                placeholder="0.00">
+              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold text-sm sm:text-base">
+                NPR
+              </span>
+            </div>
+            <p class="text-xs text-gray-500 mt-1.5 flex items-center gap-1.5">
+              <i class="fas fa-info-circle"></i>
+              Maximum withdrawal: Rs. {{ available_balance|floatformat:2 }}
+            </p>
+          </div>
+
+          <!-- Info Box -->
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4">
+            <div class="flex gap-3">
+              <i class="fas fa-lightbulb text-blue-600 text-lg flex-shrink-0 mt-0.5"></i>
+              <div>
+                <h4 class="font-semibold text-blue-900 text-sm mb-1">Processing Time</h4>
+                <p class="text-xs text-blue-700 leading-relaxed">
+                  Your payout request will be reviewed within 24-48 hours. You'll receive a notification once processed.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mt-8">
+            <button onclick="window.history.back();"
+              class="w-full sm:flex-1 order-2 sm:order-1 px-6 py-3.5 text-center text-gray-700 font-semibold bg-gray-100 rounded-xl hover:bg-gray-200 active:scale-95 shadow-sm hover:shadow transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-arrow-left"></i>
+              <span>Cancel</span>
+          </button>
+
+            <button type="submit"
+              class="w-full sm:flex-1 order-1 sm:order-2 px-6 py-3.5 text-center text-white font-semibold bg-blue-600 rounded-xl hover:from-blue-700 hover:to-purple-700 active:scale-95 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-paper-plane"></i>
+              <span>Submit Request</span>
+            </button>
+          </div>
+        </form>
+
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-layer-group"></i> Subcategories</h1>
+    <a href="{% url 'admin_subcategory_add' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+      <i class="fas fa-plus mr-1"></i> Add Subcategory
+    </a>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table id="subcategoriesTable" class="display w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 text-left">ID</th>
+          <th class="px-4 py-3 text-left">Image</th>
+          <th class="px-4 py-3 text-left">Category</th>
+          <th class="px-4 py-3 text-left">Name</th>
+       
+          <th class="px-4 py-3 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for subcategory in subcategories %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3">{{ subcategory.id }}</td>
+             <td class="px-4 py-3">
+            {% if subcategory.image %}
+           <img src="{{ subcategory.image.url }}"
+             alt="{{ subcategory.name }}"
+           class="h-10 w-10 object-cover rounded"/>
+            {% else %}
+            <span class="text-gray-400">-</span>
+               {% endif %}
+            </td>
+          <td class="px-4 py-3 font-medium">{{ subcategory.category.name }}</td>
+          <td class="px-4 py-3 font-medium">{{ subcategory.name }}</td>
+          
+          <td class="px-4 py-3 text-center">
+            <div class="inline-flex items-center space-x-3 justify-center">
+              <a href="{% url 'admin_subcategory_update' subcategory.id %}" class="text-blue-600 hover:text-blue-800" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+              <a href="{% url 'admin_subcategory_delete' subcategory.id %}" class="text-red-600 hover:text-red-800" title="Delete" onclick="return confirm('Delete this subcategory?')">
+                <i class="fas fa-trash-alt"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-gray-500 py-6">No subcategories found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+  $(document).ready(function () {
+    $('#subcategoriesTable').DataTable({
+      pageLength: 10,
+      lengthChange: true,
+      searching: true,
+      ordering: true,
+      responsive: true,
+      language: {
+        search: "_INPUT_",
+        searchPlaceholder: "Search subcategories..."
+      }
+    });
+  });
+</script>
+
+{% endblock %}

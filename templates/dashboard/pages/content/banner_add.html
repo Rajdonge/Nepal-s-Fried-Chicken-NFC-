@@ -1,0 +1,87 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6 max-w-3xl mx-auto mt-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Add Banner</h1>
+    <a href="{% url 'admin_banners_list' %}" class="text-blue-600 hover:text-blue-800">Back to Banners</a>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+    <div class="mb-4">
+      {% for message in messages %}
+        <div class="p-3 rounded
+                    {% if message.tags == 'error' %}bg-red-100 text-red-700{% endif %}
+                    {% if message.tags == 'success' %}bg-green-100 text-green-700{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="space-y-5" id="bannerForm">
+    {% csrf_token %}
+
+    <!-- Title -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+      <input type="text" name="title" placeholder="Title"
+             value="{{ title|default:'' }}"
+             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    </div>
+
+    <!-- Link -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Link</label>
+      <input type="url" name="link" placeholder="https://..."
+             value="{{ link|default:'' }}"
+             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    </div>
+
+    <!-- Page Selection -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Page</label>
+      <select name="page" id="pageSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        {% for value, label in page_choices %}
+          <option value="{{ value }}" {% if selected_page == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <p class="text-gray-500 text-xs mt-1">Only one banner is allowed per page.</p>
+      <p id="pageWarning" class="text-red-500 text-sm mt-1 hidden">A banner for this page already exists.</p>
+    </div>
+
+    <!-- Image -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
+      <input type="file" name="image" accept="image/*"
+             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex justify-end gap-3">
+      <a href="{% url 'admin_banners_list' %}" class="px-4 py-2 rounded-lg border hover:bg-gray-100">Cancel</a>
+      <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">Save</button>
+    </div>
+  </form>
+</div>
+
+<script>
+const usedPages = {{ used_pages|safe }}; // JS array of already used pages
+const pageSelect = document.getElementById('pageSelect');
+const form = document.getElementById('bannerForm');
+const warning = document.getElementById('pageWarning');
+
+form.addEventListener('submit', function(e) {
+    const selected = pageSelect.value;
+    if (usedPages.includes(selected)) {
+        e.preventDefault(); // stop form submission
+        warning.classList.remove('hidden'); // show warning
+    } else {
+        warning.classList.add('hidden'); // hide warning
+    }
+});
+</script>
+
+{% endblock %}

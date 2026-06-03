@@ -1,0 +1,72 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-[var(--bg-light)] py-12 px-4">
+  <div class="max-w-md w-full bg-white rounded-lg shadow-md p-8 space-y-6">
+    
+    <!-- Title -->
+    <div class="text-center">
+      <h2 class="text-2xl font-bold text-[var(--text-primary)]">Welcome Back</h2>
+      <p class="text-gray-500 mt-1">Sign in to your account</p>
+    </div>
+
+    <!-- Login Form -->
+    <form method="POST" action="" class="space-y-4">
+      {% csrf_token %}
+      
+      <!-- Email -->
+      <div>
+        <label for="email" class="block text-sm font-semibold text-gray-700">Email</label>
+        <input type="email" name="email" id="email" required
+               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm">
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label for="password" class="block text-sm font-semibold text-gray-700">Password</label>
+        <input type="password" name="password" id="password" required
+               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm">
+      </div>
+
+      <!-- Remember Me + Forgot -->
+      <div class="flex items-center justify-between text-sm">
+        <label class="flex items-center space-x-2 text-gray-600">
+          <input type="checkbox" name="remember" class="h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300 rounded">
+          <span>Remember me</span>
+        </label>
+        <a href="{% url 'forget_password'%}" class="text-[var(--primary)] hover:text-[var(--primary-dark)] font-semibold">Forgot password?</a>
+      </div>
+
+      <!-- Submit Button -->
+      <div>
+        <button type="submit"
+                class="w-full py-2 px-4 bg-[var(--bg-brown)] text-white font-semibold rounded-lg hover:bg-[var(--primary-dark)] cursor-pointer transition">
+          Sign In
+        </button>
+      </div>
+    </form>
+
+    <!-- Divider -->
+    <div class="flex items-center my-4">
+      <hr class="flex-grow border-gray-300">
+      <span class="mx-2 text-gray-400 text-sm">OR</span>
+      <hr class="flex-grow border-gray-300">
+    </div>
+
+
+
+    <!-- Register Link -->
+    <p class="text-center text-gray-500 text-sm mt-4">
+      Don't have an account?
+      <br>
+      <a href="{% url 'signup_page' %}" class="text-[var(--primary)] font-semibold hover:text-[var(--primary-dark)]" target="_blank">
+        Sign Up
+      </a>
+    </p>
+
+  </div>
+</div>
+
+{% endblock %}

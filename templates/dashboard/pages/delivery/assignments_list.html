@@ -1,0 +1,284 @@
+{% extends 'dashboard/components/base.html' %}
+
+{% block title %}Delivery Assignments - Admin{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+        <i class="fas fa-tasks text-blue-600"></i> Delivery Assignments
+    </h1>
+    <p class="text-gray-600">Manage order assignments to delivery persons</p>
+</div>
+
+<!-- Filter -->
+<div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
+    <form method="get" class="flex gap-4">
+        <select name="status" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="">All Status</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+            <i class="fas fa-filter mr-2"></i> Filter
+        </button>
+    </form>
+</div>
+
+<!-- Assign Button -->
+<div class="mb-6">
+    <a href="{% url 'admin_assign_order' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">
+        <i class="fas fa-plus-circle"></i> Assign New Order
+    </a>
+</div>
+
+<!-- Table -->
+<div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden mb-20">
+    <div class="overflow-x-auto">
+    <table class="w-full min-w-max">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Order</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Customer</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Delivery Person</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Assigned Date</th>
+                <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for assignment in assignments %}
+            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+                <td class="px-6 py-4 text-sm font-medium text-blue-600">
+                    #{{ assignment.order.order_number }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-900">{{ assignment.order.full_name }}</td>
+                <td class="px-6 py-4 text-sm text-gray-900">
+                    {{ assignment.delivery_person.user.first_name }} {{ assignment.delivery_person.user.last_name }}
+                </td>
+                <td class="px-6 py-4 text-sm">
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold
+                        {% if assignment.status == 'delivered' %}bg-green-100 text-green-800
+                        {% elif assignment.status == 'failed' %}bg-red-100 text-red-800
+                        {% elif assignment.status == 'in_transit' %}bg-blue-100 text-blue-800
+                        {% elif assignment.status == 'picked_up' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ assignment.get_status_display }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-600">
+                    {{ assignment.assigned_at|date:"M d, Y H:i" }}
+                </td>
+                <td class="px-6 py-4 text-center">
+                    <button type="button" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm font-medium info-btn" data-assignment-id="{{ assignment.id }}">
+                    <i class="fas fa-info-circle"></i> Info
+                </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-6 py-8 text-center text-gray-600">
+                    <i class="fas fa-inbox text-4xl text-gray-300 mb-2"></i>
+                    <p>No assignments found</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+  </div>
+</div>
+<!-- Info Modal -->
+<div id="info-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-info-circle"></i> Assignment Details
+                </h2>
+                <button type="button" class="close-modal text-white hover:text-gray-200" aria-label="Close">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="px-6 py-4 space-y-6 max-h-96 overflow-y-auto">
+                
+                <!-- Order Info -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-box text-blue-600"></i> Order Information
+                    </h3>
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">Order Number:</span> <span id="modal-order-number" class="font-semibold"></span></div>
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">Customer:</span> <span id="modal-customer-name" class="font-semibold"></span></div>
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">Phone:</span> <span id="modal-customer-phone"></span></div>
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">Address:</span> <span id="modal-address"></span></div>
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">Total:</span> <span id="modal-total" class="font-semibold text-blue-600"></span></div>
+                    </div>
+                </div>
+
+                <!-- Delivery Person Info -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-user text-green-600"></i> Delivery Person
+                    </h3>
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">Name:</span> <span id="modal-delivery-name" class="font-semibold"></span></div>
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">Phone:</span> <span id="modal-delivery-phone"></span></div>
+                    </div>
+                </div>
+
+                <!-- Delivery Status & Timeline -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-clock text-orange-600"></i> Timeline
+                    </h3>
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">Current Status:</span> <span id="modal-status" class="font-semibold px-2 py-1 rounded inline-block"></span></div>
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">Assigned:</span> <span id="modal-assigned-at"></span></div>
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">Picked Up:</span> <span id="modal-picked-up-at"></span></div>
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">In Transit:</span> <span id="modal-in-transit-at"></span></div>
+                        <div class="flex justify-between"><span class="font-medium text-gray-600">Delivered:</span> <span id="modal-delivered-at"></span></div>
+                    </div>
+                </div>
+
+
+
+                <!-- Notes -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-sticky-note text-purple-600"></i> Notes
+                    </h3>
+                    <div class="bg-purple-50 rounded-lg p-4">
+                        <p id="modal-notes" class="text-sm text-gray-700 whitespace-pre-wrap">No notes</p>
+                    </div>
+                </div>
+
+                <!-- Delivery Photo -->
+                <div id="modal-photo-section" class="hidden">
+                    <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-camera text-blue-600"></i> Delivery Proof
+                    </h3>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <img id="modal-delivery-photo" src="" alt="Delivery photo" class="w-full max-h-96 object-contain rounded-lg border border-gray-300 cursor-pointer" onclick="viewImageFullscreen(this.src)">
+                    </div>
+                </div>
+
+                <!-- Failure Reason (if failed) -->
+                <div id="modal-failure-section" class="hidden">
+                    <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-exclamation-circle text-red-600"></i> Failure Reason
+                    </h3>
+                    <div class="bg-red-50 rounded-lg p-4">
+                        <p id="modal-failure-reason" class="text-sm text-gray-700 whitespace-pre-wrap"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-gray-100 px-6 py-4 flex justify-end">
+                <button type="button" class="close-modal px-6 py-2 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('info-modal');
+    const closeModalBtn = document.querySelectorAll('.close-modal');
+    const infoBtns = document.querySelectorAll('.info-btn');
+
+    // Close modal
+    closeModalBtn.forEach(btn => {
+        btn.addEventListener('click', function() {
+            modal.classList.add('hidden');
+        });
+    });
+
+    // Click outside modal to close
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            modal.classList.add('hidden');
+        }
+    });
+
+    // Open modal with assignment data
+    infoBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const assignmentId = this.dataset.assignmentId;
+            
+            // Fetch assignment data
+            fetch(`/admin-dashboard/delivery-assignments/${assignmentId}/details/`)
+                .then(response => response.json())
+                .then(data => {
+                    // Populate modal
+                    document.getElementById('modal-order-number').textContent = data.order_number;
+                    document.getElementById('modal-customer-name').textContent = data.customer_name;
+                    document.getElementById('modal-customer-phone').textContent = data.customer_phone;
+                    document.getElementById('modal-address').textContent = data.address;
+                    document.getElementById('modal-total').textContent = 'Rs. ' + data.total;
+                    
+                    document.getElementById('modal-delivery-name').textContent = data.delivery_person_name;
+                    document.getElementById('modal-delivery-phone').textContent = data.delivery_person_phone;
+                    
+                    document.getElementById('modal-status').textContent = data.status_display;
+                    document.getElementById('modal-assigned-at').textContent = data.assigned_at || '-';
+                    document.getElementById('modal-picked-up-at').textContent = data.picked_up_at || '-';
+                    document.getElementById('modal-in-transit-at').textContent = data.in_transit_at || '-';
+                    document.getElementById('modal-delivered-at').textContent = data.delivered_at || '-';
+                    
+                    document.getElementById('modal-notes').textContent = data.notes || 'No notes';
+                    
+                    // Show/hide failure section
+                    const failureSection = document.getElementById('modal-failure-section');
+                    if (data.failure_reason) {
+                        failureSection.classList.remove('hidden');
+                        document.getElementById('modal-failure-reason').textContent = data.failure_reason;
+                    } else {
+                        failureSection.classList.add('hidden');
+                    }
+
+                    // Delivery photo
+                    if (data.delivery_photo) {
+                        document.getElementById('modal-photo-section').classList.remove('hidden');
+                        document.getElementById('modal-delivery-photo').src = data.delivery_photo;
+                    } else {
+                        document.getElementById('modal-photo-section').classList.add('hidden');
+                    }
+                    
+                    // Show modal
+                    modal.classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to load assignment details');
+                });
+        });
+    });
+});
+// View image in fullscreen
+function viewImageFullscreen(imageSrc) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4';
+    modal.onclick = function() { modal.remove(); };
+    
+    const img = document.createElement('img');
+    img.src = imageSrc;
+    img.className = 'max-w-full max-h-screen object-contain';
+    img.onclick = function(e) { e.stopPropagation(); };
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '<i class="fas fa-times text-white text-3xl"></i>';
+    closeBtn.className = 'absolute top-4 right-4 text-white hover:text-gray-300';
+    closeBtn.onclick = function() { modal.remove(); };
+    
+    modal.appendChild(img);
+    modal.appendChild(closeBtn);
+    document.body.appendChild(modal);
+}
+</script>
+{% endblock %}

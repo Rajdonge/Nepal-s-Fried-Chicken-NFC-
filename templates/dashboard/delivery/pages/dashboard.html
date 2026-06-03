@@ -1,0 +1,154 @@
+{% extends 'dashboard/delivery/pages/base.html' %}
+
+{% block title %}Delivery Dashboard{% endblock %}
+
+{% block content %}
+<section class="px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
+    <!-- Page Heading -->
+    <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+        <i class="fas fa-tachometer-alt text-blue-600"></i> Delivery Dashboard
+    </h1>
+
+    <!-- Status Stats Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+        <!-- Assigned -->
+        <div class="bg-white p-4 sm:p-5 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition flex flex-col gap-2">
+            <h3 class="font-semibold text-gray-700 mb-1 text-xs sm:text-sm">
+                <i class="fas fa-briefcase mr-2 text-blue-500"></i> <span class="hidden sm:inline">Assigned</span><span class="sm:hidden">Assign.</span>
+            </h3>
+            <p class="text-2xl sm:text-3xl font-bold text-blue-600">{{ assigned }}</p>
+            <p class="text-gray-600 text-xs hidden sm:block">Orders assigned</p>
+        </div>
+
+        <!-- Picked Up -->
+        <div class="bg-white p-4 sm:p-5 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition flex flex-col gap-2">
+            <h3 class="font-semibold text-gray-700 mb-1 text-xs sm:text-sm">
+                <i class="fas fa-cube mr-2 text-yellow-500"></i> <span class="hidden sm:inline">Picked Up</span><span class="sm:hidden">Pickup</span>
+            </h3>
+            <p class="text-2xl sm:text-3xl font-bold text-yellow-600">{{ picked_up }}</p>
+            <p class="text-gray-600 text-xs hidden sm:block">Ready for delivery</p>
+        </div>
+
+        <!-- In Transit -->
+        <div class="bg-white p-4 sm:p-5 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition flex flex-col gap-2">
+            <h3 class="font-semibold text-gray-700 mb-1 text-xs sm:text-sm">
+                <i class="fas fa-truck mr-2 text-orange-500"></i> <span class="hidden sm:inline">In Transit</span><span class="sm:hidden">Transit</span>
+            </h3>
+            <p class="text-2xl sm:text-3xl font-bold text-orange-600">{{ in_transit }}</p>
+            <p class="text-gray-600 text-xs hidden sm:block">On the way</p>
+        </div>
+
+        <!-- Delivered -->
+        <div class="bg-white p-4 sm:p-5 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition flex flex-col gap-2">
+            <h3 class="font-semibold text-gray-700 mb-1 text-xs sm:text-sm">
+                <i class="fas fa-check-circle mr-2 text-green-500"></i> <span class="hidden sm:inline">Delivered</span><span class="sm:hidden">Deliv.</span>
+            </h3>
+            <p class="text-2xl sm:text-3xl font-bold text-green-600">{{ delivered }}</p>
+            <p class="text-gray-600 text-xs hidden sm:block">Successfully done</p>
+        </div>
+
+        <!-- Failed -->
+        <div class="bg-white p-4 sm:p-5 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition flex flex-col gap-2">
+            <h3 class="font-semibold text-gray-700 mb-1 text-xs sm:text-sm">
+                <i class="fas fa-times-circle mr-2 text-red-500"></i> <span class="hidden sm:inline">Failed</span><span class="sm:hidden">Fail</span>
+            </h3>
+            <p class="text-2xl sm:text-3xl font-bold text-red-600">{{ failed }}</p>
+            <p class="text-gray-600 text-xs hidden sm:block">Failed deliveries</p>
+        </div>
+    </div>
+
+    <!-- Performance Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <!-- Total Deliveries -->
+        <div class="bg-white p-5 sm:p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm sm:text-base text-gray-600 font-medium mb-1">Total Deliveries</p>
+                    <p class="text-3xl sm:text-4xl font-bold text-blue-600">{{ total }}</p>
+                </div>
+                <div class="text-4xl sm:text-5xl text-blue-200">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Address -->
+        <div class="bg-white p-5 sm:p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm sm:text-base text-gray-600 font-medium mb-1">Service Location</p>
+                    <p class="text-xl sm:text-2xl font-bold text-purple-600 break-words">{{ delivery_person.district }}</p>
+                </div>
+                <div class="text-4xl sm:text-5xl text-purple-200">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex items-center gap-2">
+            <i class="fas fa-history text-blue-600"></i>
+            <h3 class="text-base sm:text-lg font-bold text-gray-900">Recent Orders</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs sm:text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-3 sm:px-6 py-2 sm:py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Order #</th>
+                        <th class="px-3 sm:px-6 py-2 sm:py-3 text-left font-semibold text-gray-700 hidden sm:table-cell whitespace-nowrap">Customer</th>
+                        <th class="px-3 sm:px-6 py-2 sm:py-3 text-left font-semibold text-gray-700 hidden md:table-cell whitespace-nowrap">Address</th>
+                        <th class="px-3 sm:px-6 py-2 sm:py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Total</th>
+                        <th class="px-3 sm:px-6 py-2 sm:py-3 text-left font-semibold text-gray-700 whitespace-nowrap">Status</th>
+                        <th class="px-3 sm:px-6 py-2 sm:py-3 text-center font-semibold text-gray-700 whitespace-nowrap">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in recent_assignments %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 font-medium text-blue-600">{{ assignment.order.order_number }}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 text-gray-900 hidden sm:table-cell">{{ assignment.order.full_name }}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 text-gray-600 hidden md:table-cell">
+                            <div class="max-w-xs truncate">{{ assignment.order.city }}, {{ assignment.order.address|truncatewords:3 }}</div>
+                        </td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 font-semibold text-gray-900">Rs. {{ assignment.order.total }}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4">
+                            <span class="inline-block px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap
+                                {% if assignment.status == 'delivered' %}bg-green-100 text-green-800
+                                {% elif assignment.status == 'failed' %}bg-red-100 text-red-800
+                                {% elif assignment.status == 'in_transit' %}bg-blue-100 text-blue-800
+                                {% elif assignment.status == 'picked_up' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                <i class="fas fa-circle mr-1 hidden sm:inline"></i> 
+                                <span class="hidden sm:inline">{{ assignment.get_status_display }}</span>
+                                <span class="sm:hidden">
+                                    {% if assignment.status == 'delivered' %}✓
+                                    {% elif assignment.status == 'failed' %}✕
+                                    {% elif assignment.status == 'in_transit' %}→
+                                    {% elif assignment.status == 'picked_up' %}📦
+                                    {% else %}⊙{% endif %}
+                                </span>
+                            </span>
+                        </td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 text-center">
+                            <a href="{% url 'delivery_order_detail' assignment.id %}" class="text-blue-600 hover:text-blue-800 font-medium text-xs sm:text-sm">
+                                <span class="hidden sm:inline">Details →</span>
+                                <span class="sm:hidden">→</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-3 sm:px-6 py-6 sm:py-8 text-center text-gray-600">
+                            <i class="fas fa-inbox text-3xl sm:text-4xl text-gray-300 mb-2"></i>
+                            <p class="text-sm sm:text-lg">No orders assigned yet</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

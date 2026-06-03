@@ -1,0 +1,232 @@
+{% extends 'dashboard/components/base.html' %}
+
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Add Restaurant</h1>
+    <a href="{% url 'admin_restaurant_list' %}" class="text-sm text-blue-600 hover:text-blue-800">Back to list</a>
+  </div>
+
+  <form method="post" action="{% url 'admin_restaurant_add' %}" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">First Name <span class="text-red-600">*</span> </label>
+        <input type="text" name="first_name" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Last Name <span class="text-red-600">*</span> </label>
+        <input type="text" name="last_name" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Shop Name <span class="text-red-600">*</span> </label>
+        <input type="text" name="shop_name" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Email <span class="text-red-600">*</span> </label>
+        <input type="email" name="email" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Phone <span class="text-red-600">*</span> </label>
+        <input type="text" name="phone" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">Address <span class="text-red-600">*</span> </label>
+        <input type="text" name="address" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <!-- Province & District -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Province <span class="text-red-600">*</span> </label>
+        <select id="province" name="province" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+          <option value="">Select Province</option>
+          {% for prov in nepal_locations %}
+            <option value="{{ prov.province }}">{{ prov.province }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">District <span class="text-red-600">*</span> </label>
+        <select id="district" name="city" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+          <option value="">Select District</option>
+        </select>
+      </div>
+
+      <!-- Latitude and Longitude Fields -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Latitude <span class="text-red-600">*</span></label>
+        <input type="text" 
+               name="latitude" 
+               id="latitude" 
+               class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" 
+               placeholder="e.g., 27.717245"
+               required>
+        <p class="text-xs text-gray-500 mt-1">Click on map to set coordinates</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Longitude <span class="text-red-600">*</span></label>
+        <input type="text" 
+               name="longitude" 
+               id="longitude" 
+               class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" 
+               placeholder="e.g., 85.323960"
+               required>
+        <p class="text-xs text-gray-500 mt-1">Click on map to set coordinates</p>
+      </div>
+
+      <!-- Map Container -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Pick Location on Map</label>
+        <div id="map" style="height: 400px; width: 100%; border-radius: 0.5rem; border: 1px solid #e2e8f0;"></div>
+        <p class="text-xs text-gray-500 mt-2">Click anywhere on the map to set restaurant location</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">PAN Number <span class="text-red-600">*</span></label>
+        <input type="text" name="pan_number" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Citizenship Number <span class="text-red-600">*</span></label>
+        <input required type="text" name="citizenship_number" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5">
+      </div>
+
+      <!-- QR Image Upload -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">Payment QR Code <span class="text-red-600">*</span> </label>
+        <input required type="file" name="qr_image" accept="image/*" class="mt-1 block w-full">
+      </div>
+
+      {% comment %} <div>
+        <label class="block text-sm font-medium text-gray-700">Verification Status</label>
+        <select name="verification_status" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5">
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div> {% endcomment %}
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Shop Logo <span class="text-red-600">*</span></label>
+        <input required type="file" name="shop_logo" accept="image/*" class="mt-1 block w-full">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Shop Banner <span >(optional)</span></label>
+        <input type="file" name="shop_banner" accept="image/*" class="mt-1 block w-full">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">PAN Document (pdf/jpg/jpeg/png) <span class="text-red-600">*</span> </label>
+        <input type="file" name="pan_document" accept=".pdf,image/*" class="mt-1 block w-full" required>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Citizenship Front <span class="text-red-600">*</span> </label>
+        <input required type="file" name="citizenship_front" accept="image/*" class="mt-1 block w-full">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Citizenship Back <span class="text-red-600">*</span> </label>
+        <input required type="file" name="citizenship_back" accept="image/*" class="mt-1 block w-full">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Company Registration <span class="text-red-600">*</span> </label>
+        <input required type="file" name="company_registration" class="mt-1 block w-full">
+      </div>
+    </div>
+          
+    <!-- Visible on Platform -->
+    {% comment %} <div class="mt-2">
+      <label class="inline-flex items-center gap-2">
+        <input type="checkbox" name="is_visible" value="1"
+               {% if vendor and vendor.is_visible %}checked{% endif %}>
+        <span class="text-gray-700 text-sm">Visible on Platform</span>
+      </label>
+    </div> {% endcomment %}
+
+    <div class="pt-4">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Save Restaurant</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include Leaflet CSS and JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const locations = {{ nepal_locations|safe }};
+  const provinceSelect = document.getElementById('province');
+  const districtSelect = document.getElementById('district');
+
+  provinceSelect.addEventListener('change', function() {
+    const selectedProvince = this.value;
+    districtSelect.innerHTML = '<option value="">Select District</option>';
+    const prov = locations.find(p => p.province === selectedProvince);
+    if (prov) {
+      prov.districts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.text = d;
+        districtSelect.appendChild(opt);
+      });
+    }
+  });
+
+  // Initialize Map (Default center at Kathmandu, Nepal)
+  const defaultLat = 27.717245;
+  const defaultLng = 85.323960;
+  
+  const map = L.map('map').setView([defaultLat, defaultLng], 13);
+  
+  // Add OpenStreetMap tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  
+  // Add marker that can be dragged
+  let marker = L.marker([defaultLat, defaultLng], {
+    draggable: true
+  }).addTo(map);
+  
+  // Set initial coordinates in form fields
+  document.getElementById('latitude').value = defaultLat;
+  document.getElementById('longitude').value = defaultLng;
+  
+  // Update coordinates when marker is dragged
+  marker.on('dragend', function(e) {
+    const position = marker.getLatLng();
+    document.getElementById('latitude').value = position.lat.toFixed(6);
+    document.getElementById('longitude').value = position.lng.toFixed(6);
+  });
+  
+  // Update coordinates and marker when map is clicked
+  map.on('click', function(e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    
+    // Update form fields
+    document.getElementById('latitude').value = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
+    
+    // Move marker to clicked position
+    marker.setLatLng([lat, lng]);
+  });
+});
+</script>
+{% endblock %}

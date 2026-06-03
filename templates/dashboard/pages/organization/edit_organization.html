@@ -1,0 +1,109 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white shadow-md rounded-xl p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">
+      <i class="fa-solid fa-pen-to-square text-blue-600 mr-2"></i>
+      Update Organization Info
+    </h1>
+    <a href="{% url 'admin_organization_view' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">
+      <i class="fa-solid fa-arrow-left mr-1"></i> Back
+    </a>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {% csrf_token %}
+
+    <!-- Name -->
+    <div>
+      <label class="block text-gray-700 font-medium mb-1">Organization Name</label>
+      <input type="text" name="name" value="{{ organization.name }}" required
+             class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+    </div>
+
+   
+
+    <!-- Email -->
+    <div>
+      <label class="block text-gray-700 font-medium mb-1">Email</label>
+      <input type="email" name="email" value="{{ organization.email }}" required
+             class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+    </div>
+
+    <!-- Phone -->
+    <div>
+      <label class="block text-gray-700 font-medium mb-1">Phone</label>
+      <input type="text" name="phone" value="{{ organization.phone }}" required
+             class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+    </div>
+
+    <!-- Secondary Phone -->
+    <div>
+      <label class="block text-gray-700 font-medium mb-1">WhatsApp Phone</label>
+      <input type="text" name="phone_secondary" value="{{ organization.phone_secondary }}"
+             class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+    </div>
+
+    <!-- Address -->
+    <div class="md:col-span-2">
+      <label class="block text-gray-700 font-medium mb-1">Address</label>
+      <textarea name="address" rows="3"
+                class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">{{ organization.address }}</textarea>
+    </div>
+
+    <!-- Logo -->
+    <div>
+      <label class="block text-gray-700 font-medium mb-1">Logo</label>
+      {% if organization.logo %}
+        <img src="{{ organization.logo.url }}" alt="Logo" class="h-16 mb-2 border rounded-lg">
+      {% endif %}
+      <input type="file" name="logo" accept="image/*"
+             class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+    </div>
+
+  
+
+    <!-- Social Links -->
+    <div class="md:col-span-2 border-t pt-4">
+      <h3 class="text-lg font-semibold text-gray-800 mb-3">Social Media Links</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Facebook</label>
+          <input type="url" name="facebook" value="{{ organization.facebook }}"
+                 class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Instagram</label>
+          <input type="url" name="instagram" value="{{ organization.instagram }}"
+                 class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Twitter</label>
+          <input type="url" name="twitter" value="{{ organization.twitter }}"
+                 class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">YouTube</label>
+          <input type="url" name="youtube" value="{{ organization.youtube }}"
+                 class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">TikTok</label>
+          <input type="url" name="tiktok" value="{{ organization.tiktok }}"
+                 class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="md:col-span-2 text-right mt-4">
+      <button type="submit"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
+        <i class="fa-solid fa-save mr-1"></i> Save Changes
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

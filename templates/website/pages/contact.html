@@ -1,0 +1,92 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+<div class="mt-8 max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 md:p-12 fade-in">
+  
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Contact Us</h1>
+  <p class="text-gray-600 mb-8">Have a question or message? Reach out to us and we'll respond as soon as possible.</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    
+    <!-- Contact Form -->
+    <form method="POST" class="space-y-4 md:col-span-2">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="text" name="name" placeholder="Your Name*" required
+               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[var(--primary)] outline-none transition">
+        <input type="email" name="email" placeholder="Your Email*" required
+               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[var(--primary)] outline-none transition">
+      </div>
+
+      <input type="text" name="phone" placeholder="Phone"
+             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[var(--primary)] outline-none transition">
+      
+      <input type="text" name="subject" placeholder="Subject"
+             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[var(--primary)] outline-none transition">
+      
+      <textarea name="message" placeholder="Your Message*" required rows="5"
+                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[var(--primary)] outline-none transition"></textarea>
+      
+      <button type="submit" class="btn bg-[var(--bg-brown)] text-white ">Send Message</button>
+    </form>
+
+    <!-- Contact Info -->
+    <div class="flex flex-col justify-start space-y-2">
+      <h2 class="text-2xl font-semibold text-gray-700">Our Contact Info</h2>
+      
+      {% if organization.phone %}
+        <p class="flex items-center gap-2 text-gray-700">
+          <i class="fas fa-phone-alt text-[var(--primary)]"></i> +977-{{ organization.phone }}
+        </p>
+      {% endif %}
+      {% if organization.phone_secondary %}
+        <p class="flex items-center gap-2 text-gray-700">
+          <i class="fas fa-phone-alt text-[var(--primary)]"></i> +977-{{ organization.phone_secondary }}
+        </p>
+      {% endif %}
+      {% if organization.email %}
+        <p class="flex items-center gap-2 text-gray-700">
+          <i class="fas fa-envelope text-[var(--primary)]"></i> {{ organization.email }}
+        </p>
+      {% endif %}
+      {% if organization.address %}
+        <p class="flex items-center gap-2 text-gray-700">
+          <i class="fas fa-map-marker-alt text-[var(--primary)]"></i> {{ organization.address }}
+        </p>
+      {% endif %}
+      
+      <!-- Social Media -->
+      <div class="flex items-center gap-4 mt-4">
+        {% if organization.facebook %}
+          <a href="{{ organization.facebook }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-xl">
+            <i class="fab fa-facebook"></i>
+          </a>
+        {% endif %}
+        {% if organization.instagram %}
+          <a href="{{ organization.instagram }}" target="_blank" class="text-pink-500 hover:text-pink-600 text-xl">
+            <i class="fab fa-instagram"></i>
+          </a>
+        {% endif %}
+        {% if organization.twitter %}
+          <a href="{{ organization.twitter }}" target="_blank" class="text-sky-500 hover:text-sky-700 text-xl">
+            <i class="fab fa-twitter"></i>
+          </a>
+        {% endif %}
+        {% if organization.youtube %}
+          <a href="{{ organization.youtube }}" target="_blank" class="text-red-600 hover:text-red-700 text-xl">
+            <i class="fab fa-youtube"></i>
+          </a>
+        {% endif %}
+        {% if organization.tiktok %}
+          <a href="{{ organization.tiktok }}" target="_blank" class="text-gray-800 hover:text-black text-xl">
+            <i class="fab fa-tiktok"></i>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

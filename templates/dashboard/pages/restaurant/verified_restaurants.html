@@ -1,0 +1,121 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Verified KYC Vendors</h1>
+    <div class="space-x-2">
+      <a href="{% url 'admin_restaurant_list' %}" class="text-sm text-blue-600 hover:text-blue-800">All Vendors</a>
+      <a href="{% url 'admin_restaurant_pending_kyc' %}" class="text-sm text-yellow-700 hover:text-yellow-800">Pending KYC</a>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table id="verifiedVendorsTable" class="display w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 text-left">ID</th>
+          <th class="px-4 py-3 text-left">Shop Name</th>
+          <th class="px-4 py-3 text-left">Owner</th>
+          <th class="px-4 py-3 text-left">Province</th>
+          <th class="px-4 py-3 text-left">Email</th>
+          <th class="px-4 py-3 text-left">Phone</th>
+          <th class="px-4 py-3 text-left">PAN</th>
+          <th class="px-4 py-3 text-left">ID/Company Doc</th>
+          <th class="px-4 py-3 text-left">Verified At</th>
+          <th class="px-4 py-3 text-left">Joined Date</th>
+          <th class="px-4 py-3 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for vendor in vendors %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3">{{ vendor.id }}</td>
+          <td class="px-4 py-3 font-medium">{{ vendor.restaurant_name }}</td>
+          <td class="px-4 py-3">{% if vendor.user %}{{ vendor.user.first_name}} {{vendor.user.last_name}}{% else %}<span class="text-gray-400 italic">N/A</span>{% endif %}</td>
+          <td class="px-4 py-3">{{ vendor.get_province_display }}</td>
+          <td class="px-4 py-3">{{ vendor.user.email }}</td>
+          <td class="px-4 py-3">{{ vendor.phone }}</td>
+          <td class="px-4 py-3">
+            {% if vendor.pan_document %}
+              <a href="{{ vendor.pan_document.url }}" class="text-blue-600 hover:underline" target="_blank"><i class="fas fa-file-pdf"></i> PAN</a>
+            {% else %}
+              <span class="text-red-600">Missing</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3">
+            {% if vendor.company_registration %}
+              <a href="{{ vendor.company_registration.url }}" class="text-blue-600 hover:underline" target="_blank"><i class="fas fa-building"></i></a>
+            {% elif vendor.citizenship_front or vendor.citizenship_back %}
+              {% if vendor.citizenship_front %}<a href="{{ vendor.citizenship_front.url }}" class="text-blue-600 hover:underline" target="_blank"><i class="fas fa-id-card"></i> Front</a>{% endif %}
+              {% if vendor.citizenship_back %} | <a href="{{ vendor.citizenship_back.url }}" class="text-blue-600 hover:underline" target="_blank"><i class="fas fa-id-card"></i> Back</a>{% endif %}
+            {% else %}
+              <span class="text-yellow-700">Not Provided</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3">{% if vendor.verified_at %}{{ vendor.verified_at|date:"Y-m-d H:i" }}{% else %}-{% endif %}</td>
+          <td class="px-4 py-3">{{ vendor.created_at|date:"Y-m-d" }}</td>
+          <td class="px-4 py-3 text-center">
+            <div class="inline-flex items-center space-x-2">
+              <a href="{% url 'admin_restaurant_update' vendor.id %}" class="text-blue-600 hover:text-blue-800" title="View Restaurant"><i class="fas fa-eye"></i></a>
+              <button data-id="{{ vendor.id }}" data-status="pending" class="restaurant-status-btn bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs" title="Mark Pending"><i class="fas fa-hourglass-half"></i></button>
+              <button data-id="{{ vendor.id }}" data-status="rejected" class="restaurant-status-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs" title="Reject Restaurant"><i class="fas fa-times-circle"></i></button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="11" class="text-center text-gray-500 py-6">No verified KYC vendors.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  $(document).ready(function () {
+    $('#verifiedVendorsTable').DataTable({
+      pageLength: 10,
+      lengthChange: true,
+      searching: true,
+      ordering: true,
+      responsive: true,
+      language: {
+        search: "_INPUT_",
+        searchPlaceholder: "Search verified vendors..."
+      }
+    });
+
+    $(document).on('click', '.restaurant-status-btn', function (e) {
+      e.preventDefault();
+      const vendorId = $(this).data('id');
+      const newStatus = $(this).data('status');
+      $.ajax({
+        url: `{% url 'admin_restaurant_change_status' 0 %}`.replace('/0/', `/${vendorId}/`),
+        type: 'POST',
+        data: { status: newStatus },
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        success: function (resp) {
+          if (resp.success) {
+            const row = $(`button[data-id='${vendorId}']`).closest('tr');
+            row.fadeOut(200, function(){ $(this).remove(); });
+          }
+        },
+        error: function (xhr) {
+          alert('Failed to change status: ' + (xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Server error'));
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

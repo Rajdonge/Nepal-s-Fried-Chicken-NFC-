@@ -1,0 +1,80 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+
+  <!-- Profile Header -->
+  <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-lg p-6 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div class="flex items-center gap-4">
+      <div class="bg-white/20 p-3 rounded-xl">
+        <i class="fas fa-user-shield text-white text-3xl"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold tracking-wide">Admin Profile</h1>
+        <p class="text-blue-100 text-sm">Manage your profile details and access settings</p>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <a href="{% url 'admin_profile_edit' %}"
+         class="bg-white text-blue-700 font-medium px-4 py-2 rounded-lg shadow hover:bg-blue-50 flex items-center gap-2 transition">
+        <i class="fas fa-edit"></i> Edit Profile
+      </a>
+      <a href="{% url 'change_password' %}"
+         class="bg-blue-900/50 border border-white/20 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-900/70 flex items-center gap-2 transition">
+        <i class="fas fa-key"></i> Change Password
+      </a>
+    </div>
+  </div>
+
+  <!-- Profile Details -->
+  <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+    <!-- Personal Info Card -->
+    <div class="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition duration-200">
+      <div class="flex items-center gap-2 mb-4 border-b pb-2">
+        <i class="fas fa-id-card text-blue-600"></i>
+        <h2 class="font-semibold text-gray-800 text-lg">Personal Information</h2>
+      </div>
+      <div class="space-y-3 text-gray-700">
+        <p class="flex items-center gap-2">
+          <i class="fas fa-user text-gray-400"></i>
+          <span><strong>First Name:</strong> {{ user.first_name|default:"-" }}</span>
+        </p>
+        <p class="flex items-center gap-2">
+          <i class="fas fa-user text-gray-400"></i>
+          <span><strong>Last Name:</strong> {{ user.last_name|default:"-" }}</span>
+        </p>
+        <p class="flex items-center gap-2">
+          <i class="fas fa-envelope text-gray-400"></i>
+          <span><strong>Email:</strong> {{ user.email|default:"-" }}</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Role / Access Info Card -->
+    <div class="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition duration-200">
+      <div class="flex items-center gap-2 mb-4 border-b pb-2">
+        <i class="fas fa-shield-alt text-blue-600"></i>
+        <h2 class="font-semibold text-gray-800 text-lg">Access Information</h2>
+      </div>
+      <div class="space-y-3 text-gray-700">
+        <p class="flex items-center gap-2">
+          <i class="fas fa-user-tag text-gray-400"></i>
+          <span><strong>Role:</strong> Administrator</span>
+        </p>
+        <p class="flex items-center gap-2">
+          <i class="fas fa-clock text-gray-400"></i>
+          <span><strong>Joined Date:</strong> {{ user.date_joined|date:"F j, Y" }}</span>
+        </p>
+        <p class="flex items-center gap-2">
+          <i class="fas fa-sign-in-alt text-gray-400"></i>
+          <span><strong>Last Login:</strong> {{ user.last_login|date:"F j, Y, g:i A" }}</span>
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

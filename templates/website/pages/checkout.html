@@ -1,0 +1,330 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
+  
+  <!-- Messages -->
+  {% if messages %}
+  <div class="mb-6 space-y-2">
+    {% for message in messages %}
+    <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-[var(--success)]/10 text-[var(--success)]{% else %}bg-[var(--primary)]/10 text-[var(--text-primary)]{% endif %}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Breadcrumb -->
+  <nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+      <li class="inline-flex items-center">
+        <a href="{% url 'home' %}" class="inline-flex items-center text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--primary)]">
+          <i class="fas fa-home mr-2"></i> Home
+        </a>
+      </li>
+      <li>
+        <div class="flex items-center">
+          <i class="fas fa-chevron-right text-[var(--text-secondary)] mx-1"></i>
+          <a href="{% url 'carts' %}" class="ml-1 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--primary)] md:ml-2">Cart</a>
+        </div>
+      </li>
+      <li aria-current="page">
+        <div class="flex items-center">
+          <i class="fas fa-chevron-right text-[var(--text-secondary)] mx-1"></i>
+          <span class="ml-1 text-sm font-medium text-[var(--text-secondary)] md:ml-2">Checkout</span>
+        </div>
+      </li>
+    </ol>
+  </nav>
+
+  {% if cart_items %}
+  <form method="post" id="checkoutForm" class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+    {% csrf_token %}
+    
+    <!-- Checkout Form Section -->
+    <div class="lg:col-span-2">
+      <div class="bg-[var(--bg-light)] border rounded-lg p-6 shadow-[var(--shadow-sm)] space-y-6">
+        
+        <!-- Contact Information -->
+        <div>
+          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">Contact Information</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="email" name="email" value="{{ request.user.email|default:'' }}" placeholder="Email" required 
+                   class="w-full p-3 border border-[var(--text-secondary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+            <input type="tel" name="phone" placeholder="Phone Number" required 
+                   class="w-full p-3 border border-[var(--text-secondary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                   value="{{ request.user.profile.phone }}">
+          </div>
+        </div>
+
+        <!-- Delivery Address -->
+        <div>
+          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">Delivery Address</h3>
+          <div class="space-y-4">
+            <input type="text" name="full_name" placeholder="Full Name" required 
+                   class="w-full p-3 border border-[var(--text-secondary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                   value="{{ request.user.get_full_name|default:'' }}">
+            <textarea name="address" placeholder="Street Address" rows="3" required 
+                      class="w-full p-3 border border-[var(--text-secondary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">{{ request.user.profile.address }}</textarea>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <!-- Province Dropdown -->
+              <select id="province" name="province" required
+                      class="p-3 border border-[var(--text-secondary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+                <option value="">Select Province</option>
+                {% for prov in nepal_locations %}
+                  <option value="{{ prov.province }}">{{ prov.province }}</option>
+                {% endfor %}
+              </select>
+              
+              <!-- District Dropdown -->
+              <select id="district" name="city" required
+                      class="p-3 border border-[var(--text-secondary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+                <option value="">Select District / City</option>
+              </select>
+            </div>
+            <input type="text" name="postal_code" placeholder="Postal Code (Optional)" 
+                   class="w-full p-3 border border-[var(--text-secondary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"/>
+          </div>
+        </div>
+
+        <!-- Coupon Application -->
+        <div>
+          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">Apply Coupon</h3>
+          <div class="flex gap-2">
+            <input type="text" id="couponCode" placeholder="Enter coupon code" 
+                   class="w-full p-3 border border-[var(--text-secondary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                   value="{{ coupon.code|default:'' }}">
+            <button type="button" id="applyCoupon" class="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-[var(--text-light)] py-3 px-4 rounded-lg font-semibold transition-colors btn btn-primary">
+              Apply
+            </button>
+            {% if coupon %}
+            <button type="button" id="removeCoupon" class="bg-red-500 hover:bg-red-600 text-[var(--text-light)] py-3 px-4 rounded-lg font-semibold transition-colors btn">
+              Remove
+            </button>
+            {% endif %}
+          </div>
+          {% if coupon %}
+          <p class="text-sm text-[var(--success)] mt-2">Coupon "{{ coupon.code }}" applied: Rs {{ discount|floatformat:0 }} discount</p>
+          {% endif %}
+        </div>
+
+        <!-- Payment Method -->
+        <div>
+          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">Payment Method</h3>
+          <div class="space-y-3">
+            <label class="flex items-center">
+              <input type="radio" name="payment_method" value="cod" checked class="mr-2">
+              <span class="text-[var(--text-primary)]">Cash on Delivery (COD)</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-[var(--text-light)] py-3 px-4 rounded-lg font-semibold transition-colors btn btn-primary">
+          Place Order
+        </button>
+      </div>
+    </div>
+
+    <!-- Order Summary Section -->
+    <div class="lg:col-span-1">
+      <div class="bg-[var(--bg-light)] border rounded-lg p-6 shadow-[var(--shadow-sm)] sticky top-4">
+        <h2 class="text-xl font-bold text-[var(--text-primary)] mb-4">Order Summary</h2>
+        
+        <!-- Cart Items List -->
+        <div class="space-y-3 mb-4 max-h-64 overflow-y-auto pr-2">
+          {% for item in cart_items %}
+          <div class="flex items-start gap-3 p-2 bg-white rounded">
+            <img src="{{ item.menu_item.image.url|default:'https://via.placeholder.com/200' }}" 
+                 alt="{{ item.menu_item.name }}" 
+                 class="w-12 h-12 object-cover rounded flex-shrink-0">
+            <div class="flex-1 min-w-0">
+              <h4 class="font-medium text-[var(--text-primary)] text-sm truncate">{{ item.menu_item.name }}</h4>
+              
+              <!-- Display Multiple Variants -->
+              {% if item.variant_list %}
+              <div class="space-y-0.5 mt-1">
+                {% for variant in item.variant_list %}
+                <p class="text-xs text-[var(--text-secondary)]">
+                  <span class="font-medium">{{ variant.get_variant_type_display }}:</span> 
+                  {{ variant.name }}
+                  {% if variant.price_adjustment != 0 %}
+                  <span class="text-orange-600 font-semibold">
+                    ({% if variant.price_adjustment > 0 %}+{% endif %}Rs {{ variant.price_adjustment|floatformat:0 }})
+                  </span>
+                  {% endif %}
+                </p>
+                {% endfor %}
+              </div>
+              {% endif %}
+              
+              <p class="text-sm font-semibold text-[var(--success)] mt-1">
+                Rs {{ item.unit_price|floatformat:0 }} x {{ item.quantity }}
+              </p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        
+        <div class="space-y-3 mb-6">
+          <div class="flex justify-between">
+            <span class="text-[var(--text-secondary)]">Subtotal ({{ cart_items.count }} items)</span>
+            <span class="font-semibold text-[var(--text-primary)]">Rs {{ subtotal|floatformat:0 }}</span>
+          </div>
+            <!-- Delivery breakdown per restaurant -->
+            {% for restaurant_name, delivery_fee in delivery_breakdown.items %}
+            <div class="flex justify-between text-sm">
+              <span class="text-[var(--text-secondary)]">Delivery ({{ restaurant_name }})</span>
+              <span class="font-semibold">Rs {{ delivery_fee|floatformat:0 }}</span>
+            </div>
+            {% endfor %}
+
+            {% if delivery_breakdown|length > 1 %}
+            <div class="flex justify-between pt-2 border-t border-[var(--text-secondary)] font-semibold">
+              <span>Total Delivery</span>
+              <span>Rs {{ delivery_fee|floatformat:0 }}</span>
+            </div>
+            {% endif %}
+          <div class="flex justify-between">
+            <span class="text-[var(--text-secondary)]">Tax ({{ tax_rate }}%)</span>
+            <span class="font-semibold text-[var(--text-primary)]">Rs {{ tax|floatformat:0 }}</span>
+          </div>
+
+          {% if discount > 0 %}
+          <div class="flex justify-between text-green-600">
+            <span>Discount ({{ coupon.code }})</span>
+            <span class="font-semibold">-Rs {{ discount|floatformat:0 }}</span>
+          </div>
+          {% endif %}
+          <hr class="my-3 border-[var(--text-secondary)]">
+          <div class="flex justify-between text-lg font-bold">
+            <span class="text-[var(--text-primary)]">Total</span>
+            <span class="text-[var(--success)]">Rs {{ total|floatformat:0 }}</span>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-[var(--text-secondary)] text-center">
+          <div class="flex items-center justify-center gap-2 text-sm text-[var(--text-secondary)]">
+            <i class="fas fa-shield-alt text-[var(--success)]"></i>
+            <span>Secure Checkout</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  {% else %}
+  <div class="text-center py-12">
+    <div class="max-w-md mx-auto">
+      <i class="fas fa-shopping-cart text-6xl text-gray-300 mb-6"></i>
+      <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">No Items in Cart</h2>
+      <p class="text-[var(--text-secondary)] mb-6">Your cart is empty. Please add items to proceed to checkout.</p>
+      <a href="{% url 'all_collections' %}" class="inline-block bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-[var(--text-light)] px-8 py-3 rounded-lg font-semibold transition-colors btn btn-primary">
+        Continue Shopping
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+
+  const locations = {{ nepal_locations|safe }};
+  const provinceSelect = document.getElementById('province');
+  const districtSelect = document.getElementById('district');
+
+  provinceSelect.addEventListener('change', function() {
+    const selectedProvince = this.value;
+    districtSelect.innerHTML = '<option value="">Select District</option>';
+    const prov = locations.find(p => p.province === selectedProvince);
+    if (prov) {
+      prov.districts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.text = d;
+        districtSelect.appendChild(opt);
+      });
+    }
+  });
+
+  // ---------- CSRF Helper ----------
+  function getCsrfToken() {
+    return $('[name=csrfmiddlewaretoken]').val();
+  }
+
+  // ---------- APPLY COUPON ----------
+  $('#applyCoupon').on('click', function () {
+    const couponCode = $('#couponCode').val().trim();
+    const $btn = $(this);
+
+    if (!couponCode) {
+      toastr.error('Please enter a coupon code.');
+      return;
+    }
+
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Applying...');
+
+    $.ajax({
+      url: '{% url "apply_coupon" %}',
+      type: 'POST',
+      data: {
+        coupon_code: couponCode,
+        action: 'apply',
+        csrfmiddlewaretoken: getCsrfToken(),
+      },
+      success: function (response) {
+        if (response.success) {
+          toastr.success(response.message);
+          setTimeout(() => location.reload(), 800);
+        } else {
+          toastr.warning(response.message);
+        }
+      },
+      error: function (xhr) {
+        const msg = xhr.responseJSON?.message || 'Something went wrong. Please try again.';
+        toastr.error(msg);
+      },
+      complete: function () {
+        $btn.prop('disabled', false).html('Apply');
+      }
+    });
+  });
+
+  // ---------- REMOVE COUPON ----------
+  $('#removeCoupon').on('click', function () {
+    const $btn = $(this);
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Removing...');
+
+    $.ajax({
+      url: '{% url "apply_coupon" %}',
+      type: 'POST',
+      data: {
+        action: 'remove',
+        csrfmiddlewaretoken: getCsrfToken(),
+      },
+      success: function (response) {
+        if (response.success) {
+          toastr.success(response.message);
+          setTimeout(() => location.reload(), 800);
+        } else {
+          toastr.warning(response.message);
+        }
+      },
+      error: function (xhr) {
+        const msg = xhr.responseJSON?.message || 'Error removing coupon.';
+        toastr.error(msg);
+      },
+      complete: function () {
+        $btn.prop('disabled', false).html('Remove');
+      }
+    });
+  });
+
+});
+</script>
+{% endblock %}

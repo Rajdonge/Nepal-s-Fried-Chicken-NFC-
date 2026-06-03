@@ -1,0 +1,77 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="p-6 bg-gray-100 min-h-screen">
+
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-semibold text-gray-800">Rejected Payout Requests</h2>
+    <a href="{% url 'restaurant_payout_requests_add' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 shadow flex items-center gap-1">
+      <i class="fas fa-plus"></i> Request Payout
+    </a>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl shadow overflow-x-auto p-4">
+    <table id="rejectedPayoutTable" class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-2 text-left">Requested At</th>
+          <th class="px-4 py-2 text-left">Updated At</th>
+          <th class="px-4 py-2 text-left">Amount (Rs)</th>
+          <th class="px-4 py-2 text-left">Status</th>
+          <th class="px-4 py-2 text-left">Admin Response</th>
+          <th class="px-4 py-2 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pr in payout_requests %}
+        <tr class="border-b hover:bg-gray-50">
+          <td class="px-4 py-2">{{ pr.created_at|date:"M d, Y H:i" }}</td>
+          <td class="px-4 py-2">{{ pr.updated_at|date:"M d, Y H:i" }}</td>
+          <td class="px-4 py-2">Rs {{ pr.requested_amount|floatformat:2 }}</td>
+          <td class="px-4 py-2">
+            <span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+              {{ pr.get_status_display }}
+            </span>
+          </td>
+          <td class="px-4 py-2">{{ pr.admin_response|default:"-" }}</td>
+          <td class="px-4 py-2 text-center flex justify-center items-center gap-2">
+            <a href="{% url 'restaurant_payout_list' %} pr.id %}" title="View Details" class="text-blue-600 hover:text-blue-800">
+              <i class="fas fa-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center py-4 text-gray-500">No rejected payout requests found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  $(document).ready(function() {
+    $('#rejectedPayoutTable').DataTable({
+      pageLength: 10,
+      lengthChange: true,
+      searching: true,
+      ordering: true,
+      responsive: true,
+      language: {
+        search: "_INPUT_",
+        searchPlaceholder: "Search payout requests..."
+      },
+      columnDefs: [
+        { orderable: false, targets: [5] } // Actions column
+      ]
+    });
+  });
+</script>
+{% endblock %}

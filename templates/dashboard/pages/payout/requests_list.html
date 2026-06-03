@@ -1,0 +1,148 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="space-y-6">
+  <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-money-bill-wave"></i> Requested Payouts</h1>
+
+  <!-- Totals -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="text-gray-500 text-sm">Pending Total</div>
+      <div class="text-2xl font-semibold mt-1">Rs. {{ totals.pending }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="text-gray-500 text-sm">Rejected Total</div>
+      <div class="text-2xl font-semibold mt-1">Rs. {{ totals.rejected }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="text-gray-500 text-sm">Paid Total</div>
+      <div class="text-2xl font-semibold mt-1">Rs. {{ totals.paid }}</div>
+    </div>
+  </div>
+
+  <!-- Status Filter -->
+  <form method="get" class="bg-white rounded-xl shadow p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+    <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 w-full">
+      <option value="pending" {% if request.GET.status == 'pending' or not request.GET.status %}selected{% endif %}>Pending</option>
+      <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+      <option value="paid" {% if request.GET.status == 'paid' %}selected{% endif %}>Paid</option>
+    </select>
+    <div class="flex gap-2">
+      <button class="bg-gray-800 text-white px-4 py-2 rounded-lg w-full md:w-auto">Apply</button>
+      <a href="?" class="px-4 py-2 rounded-lg border w-full md:w-auto">Reset</a>
+    </div>
+  </form>
+
+  <!-- Requested Payouts Table -->
+  <div class="bg-white rounded-xl shadow p-4 overflow-x-auto">
+    <table id="requestedPayoutsTable" class="display w-full text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 text-left">Vendor</th>
+          <th class="px-4 py-3 text-left">Requested Amount</th>
+          <th class="px-4 py-3 text-left">Message</th>
+          <th class="px-4 py-3 text-left">Requested At</th>
+          <th class="px-4 py-3 text-left">Status</th>
+          <th class="px-4 py-3 text-left">Payment QR</th>
+          <th class="px-4 py-3 text-left">Method</th>
+          <th class="px-4 py-3 text-left">Txn ID</th>
+          <th class="px-4 py-3 text-left">Remarks</th>
+          <th class="px-4 py-3 text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in requests %}
+        <tr data-id="{{ r.id }}" class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium">{{ r.vendor.shop_name }}</td>
+          <td class="px-4 py-3">Rs. {{ r.requested_amount }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ r.message|default:'-' }}</td>
+          <td class="px-4 py-3">{{ r.created_at|date:"Y-m-d H:i" }}</td>
+          <td class="px-4 py-3">
+            <select class="border border-gray-300 rounded px-2 py-1 text-xs w-full status-select">
+              <option value="pending" {% if r.status == 'pending' %}selected{% endif %}>Pending</option>
+              <option value="rejected" {% if r.status == 'rejected' %}selected{% endif %}>Rejected</option>
+              <option value="paid" {% if r.status == 'paid' %}selected{% endif %}>Paid</option>
+            </select>
+          </td>
+          <td class="px-4 py-3">
+            {% if r.vendor.qr_image %}
+              <a href=" {{r.vendor.qr_image.url}}"><img src="{{ r.vendor.qr_image.url }}" alt="QR Code" class="h-12 w-12 object-contain">  </a>
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td class="px-4 py-3">
+            <input type="text" class="border border-gray-300 rounded px-2 py-1 text-xs w-full method-input" value="{{ r.method|default:'' }}">
+          </td>
+          <td class="px-4 py-3">
+            <input type="text" class="border border-gray-300 rounded px-2 py-1 text-xs w-full txn-input" value="{{ r.transaction_id|default:'' }}">
+          </td>
+          <td class="px-4 py-3">
+            <input type="text" class="border border-gray-300 rounded px-2 py-1 text-xs w-full remarks-input" value="{{ r.admin_response|default:'' }}">
+          </td>
+          <td class="px-4 py-3 text-center">
+            <button class="bg-blue-600 text-white px-3 py-1 rounded text-xs update-btn">Update</button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" class="px-4 py-6 text-center text-gray-500">No payout requests found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+  $('#requestedPayoutsTable').DataTable({
+    pageLength: 10,
+    lengthChange: true,
+    searching: true,
+    ordering: true,
+    responsive: true,
+    language: { search: "_INPUT_", searchPlaceholder: "Search payout requests..." },
+    columnDefs: [ { orderable: false, targets: -1 } ]
+  });
+
+  $('.update-btn').click(function() {
+    const row = $(this).closest('tr');
+    const id = row.data('id');
+    const status = row.find('.status-select').val();
+    const method = row.find('.method-input').val();
+    const txn = row.find('.txn-input').val();
+    const remarks = row.find('.remarks-input').val();
+
+    if(!confirm(`Are you sure you want to change the status to "${status}"?`)){
+      return; // Cancel update if user clicks "Cancel"
+    }
+
+    $.ajax({
+      url: "{% url 'admin_payout_request_change_status' 0 %}".replace('0', id),
+      method: 'POST',
+      data: {
+        csrfmiddlewaretoken: '{{ csrf_token }}',
+        status: status,
+        method: method,
+        transaction_id: txn,
+        admin_response: remarks
+      },
+      success: function(res){
+        if(res.success){
+          location.reload(); // Reload page after successful update
+        } else {
+          alert(res.error || 'Update failed!');
+        }
+      },
+      error: function(){
+        alert('Server error! Please try again.');
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

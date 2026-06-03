@@ -1,0 +1,92 @@
+{% extends 'dashboard/delivery/pages/base.html' %}
+
+{% block title %}All Orders{% endblock %}
+
+{% block content %}
+<section class="px-4 sm:px-6 lg:px-8 py-6">
+    <!-- Page Heading -->
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <i class="fas fa-list text-blue-600"></i> All Assigned Orders
+    </h1>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
+        <form method="GET" class="flex items-end gap-4">
+            <div class="flex-1">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-filter mr-1"></i> Filter by Status
+                </label>
+                <select name="status" onchange="this.form.submit()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">All Statuses</option>
+                    {% for value, display in status_choices %}
+                        <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900">
+                <i class="fas fa-box mr-2 text-blue-600"></i>
+                Orders 
+                {% if selected_status %}
+                    <span class="text-gray-600 font-normal">- {{ selected_status|title }}</span>
+                {% endif %}
+            </h3>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Order #</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Customer</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Phone</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">City</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Amount</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Current Status</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in assignments %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 text-sm font-semibold text-blue-600">{{ assignment.order.order_number }}</td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ assignment.order.full_name }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ assignment.order.phone }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ assignment.order.city }}</td>
+                        <td class="px-6 py-4 text-sm font-semibold text-gray-909">Rs. {{ assignment.order.total }}</td>
+                        <td class="px-6 py-4 text-sm">
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold
+                                {% if assignment.status == 'delivered' %}bg-green-100 text-green-800
+                                {% elif assignment.status == 'failed' %}bg-red-100 text-red-800
+                                {% elif assignment.status == 'in_transit' %}bg-blue-100 text-blue-800
+                                {% elif assignment.status == 'picked_up' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ assignment.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            <a href="{% url 'delivery_order_detail' assignment.id %}" class="inline-flex items-center gap-1 px-3 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition">
+                                <i class="fas fa-eye"></i> Update
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center">
+                            <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-600 font-medium">No orders found</p>
+                            <p class="text-gray-500 text-sm mt-1">Try changing your filter</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

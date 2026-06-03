@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You are Offline | Hello Bajar</title>
+    <meta name="theme-color" content="#bd5e00">
+    <style>
+        :root {
+            --primary: #FF7F00;
+            --primary-dark: #CC6600;
+            --bg-light: #fff8f0;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .icon {
+            font-size: 64px;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin: 0 0 10px;
+            font-size: 24px;
+            color: var(--text-primary);
+        }
+        p {
+            margin: 0 0 25px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📶</div>
+        <h1>No Internet Connection</h1>
+        <p>It seems you're offline. Please check your internet connection and try again to access Hello Bajar.</p>
+        <button onclick="window.location.reload()" class="btn">Try Again</button>
+    </div>
+</body>
+</html>
+

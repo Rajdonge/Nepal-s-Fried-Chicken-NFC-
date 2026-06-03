@@ -1,0 +1,161 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}Search Results - Hello Bajar{% endblock %}
+
+{% block content %}
+<section class="mt-8 container mx-auto px-4 py-8">
+  <!-- Title -->
+  <div class="mb-8 text-center">
+    <h2 class="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] inline-block relative pb-2">
+      Search Results for "{{ query|escape }}"
+      <span class="absolute left-0 bottom-0 w-24 h-1 bg-[var(--bg-brown)] rounded-full"></span>
+    </h2>
+  </div>
+
+  <!-- Product Grid -->
+  <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
+    {% for product in products %}
+    <div class="product-card relative bg-gray-100 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 w-full mx-auto cursor-pointer" data-product-id="{{ product.id }}">
+      <!-- Product Image & Discount -->
+      <a href="{% url 'menu_item_details' product.slug %}" class="block relative group bg-white rounded-xl m-2">
+        {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-44 sm:h-52 md:h-56 lg:h-60 object-contain rounded-xl transition-transform duration-300 group-hover:scale-105">
+        {% else %}
+        <img src="https://via.placeholder.com/250x250" alt="{{ product.name }}" class="w-full h-44 sm:h-52 md:h-56 lg:h-60 object-contain rounded-xl transition-transform duration-300 group-hover:scale-105">
+        {% endif %}
+      </a>
+
+      <!-- Product Info -->
+      <section class="p-2 sm:p-3 space-y-1 sm:space-y-2">
+        <a href="{% url 'menu_item_details' product.slug %}" class="text-xs sm:text-sm text-[var(--text-primary)] line-clamp-2 hover:underline">{{ product.name }}</a>
+        <p class="text-[10px] sm:text-xs font-medium {% if product.is_available %}text-green-600{% else %}text-red-600{% endif %}">
+          {% if product.is_available %}Available{% else %}Not Available{% endif %}
+        </p>
+
+        <div class="flex items-center mt-1 space-x-2 sm:space-x-3">
+          {% if product.cost_price and product.cost_price > product.price %}
+          <p class="text-[10px] sm:text-xs md:text-sm text-[var(--text-secondary)] line-through">Rs. {{ product.cost_price }}</p>
+          {% endif %}
+          <p class="font-bold text-orange-600 text-sm sm:text-base">Rs. {{ product.price }}</p>
+        </div>
+
+        <!-- Quantity + Add to Cart -->
+        <div class="flex flex-wrap items-center gap-2 mt-2">
+          <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
+            <button class="decreaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 text-sm transition" {% if not product.is_available %}disabled{% endif %}>
+              <i class="fas fa-minus text-xs"></i>
+            </button>
+            <input type="number" value="1" min="1" max="10" class="qtyInput w-12 text-center text-sm border-x-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset font-medium text-gray-900" {% if not product.is_available %}disabled{% endif %}>
+            <button class="increaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 text-sm transition" {% if not product.is_available %}disabled{% endif %}>
+              <i class="fas fa-plus text-xs"></i>
+            </button>
+          </div>
+
+          <button class="add-to-cart cursor-pointer flex-1 w-full sm:w-auto flex items-center justify-center gap-1 text-xs sm:text-sm px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 active:bg-orange-700 transition shadow-sm hover:shadow-md font-medium" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" {% if not product.is_available %}disabled{% endif %}>
+            <i class="fa-solid fa-cart-shopping text-xs sm:text-sm"></i>
+            <span>Add</span>
+          </button>
+        </div>
+      </section>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-12 flex flex-col items-center">
+      <i class="fas fa-box-open text-5xl text-gray-300 mb-4"></i>
+      <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-2">No Items Found</h3>
+      <p class="text-gray-500 max-w-md">Try a different search term or browse our restaurants and categories.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if products.has_other_pages %}
+  <div class="mt-6 flex justify-center">
+    <nav class="inline-flex items-center space-x-1">
+      {% if products.has_previous %}
+      <a href="?q={{ query|urlencode }}&page={{ products.previous_page_number }}" class="px-3 py-1 rounded-lg bg-white border border-gray-300 hover:bg-orange-500 hover:text-white transition">&laquo; Prev</a>
+      {% else %}
+      <span class="px-3 py-1 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">&laquo; Prev</span>
+      {% endif %}
+
+      {% for num in products.paginator.page_range %}
+        {% if products.number == num %}
+          <span class="px-3 py-1 rounded-lg bg-orange-500 text-white font-semibold border border-orange-500">{{ num }}</span>
+        {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+          <a href="?q={{ query|urlencode }}&page={{ num }}" class="px-3 py-1 rounded-lg bg-white border border-gray-300 hover:bg-orange-500 hover:text-white transition">{{ num }}</a>
+        {% elif num == 1 or num == products.paginator.num_pages %}
+          <a href="?q={{ query|urlencode }}&page={{ num }}" class="px-3 py-1 rounded-lg bg-white border border-gray-300 hover:bg-orange-500 hover:text-white transition">{{ num }}</a>
+        {% else %}
+          <span class="px-2 py-1 text-gray-400">...</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if products.has_next %}
+      <a href="?q={{ query|urlencode }}&page={{ products.next_page_number }}" class="px-3 py-1 rounded-lg bg-white border border-gray-300 hover:bg-orange-500 hover:text-white transition">Next &raquo;</a>
+      {% else %}
+      <span class="px-3 py-1 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">Next &raquo;</span>
+      {% endif %}
+    </nav>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+  function showToast(message, type = 'info') {
+    toastr.options = {
+      "closeButton": true,
+      "progressBar": true,
+      "positionClass": "toast-top-right",
+      "timeOut": "3000"
+    };
+    toastr[type](message);
+  }
+
+  // Add to Cart
+  $('.product-card .add-to-cart').on('click', function(e) {
+    e.preventDefault();
+    const $card = $(this).closest('.product-card');
+    const qty = parseInt($card.find('.qtyInput').val()) || 1;
+    const productId = $(this).data('product-id');
+    const $btn = $(this);
+
+    if (!productId) return showToast('Product ID missing', 'error');
+
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+    $.ajax({
+      url: '/api/cart-add/',
+      method: 'POST',
+      headers: { 'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val() || $('meta[name=csrf-token]').attr('content') },
+      contentType: 'application/json',
+      data: JSON.stringify({ product_id: productId, quantity: qty }),
+      success: function(res) {
+        if(res.success) {
+          showToast(res.message, 'success');
+          $('#desktopCartBadge, #mobileCartBadge').text(res.cart_count);
+        } else {
+          showToast(res.message || 'Error adding to cart', 'error');
+        }
+      },
+      error: function() { showToast('Something went wrong', 'error'); },
+      complete: function() { $btn.prop('disabled', false).html('<i class="fa-solid fa-cart-shopping"></i> Add'); }
+    });
+  });
+
+  // Quantity buttons
+  $('.increaseQty').click(function() {
+    const $input = $(this).siblings('.qtyInput');
+    const max = parseInt($input.attr('max')) || 100;
+    const val = parseInt($input.val()) || 1;
+    if(val < max) $input.val(val + 1);
+  });
+  $('.decreaseQty').click(function() {
+    const $input = $(this).siblings('.qtyInput');
+    const val = parseInt($input.val()) || 1;
+    if(val > 1) $input.val(val - 1);
+  });
+});
+</script>
+{% endblock %}

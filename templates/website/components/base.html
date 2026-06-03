@@ -1,0 +1,637 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- ========================================
+       META TAGS
+       ======================================== -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your modern ecommerce store for quality products">
+  <!-- Theme / PWA color (keep in sync with manifest.theme_color) -->
+  <meta name="theme-color" content="#bd5e00">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="msapplication-TileColor" content="#bd5e00">
+  
+  <!-- PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="application-name" content="Nepal's Fried Chicken">
+  <meta name="apple-mobile-web-app-title" content="Nepal's Fried Chicken">
+
+  <!-- ========================================
+       FAVICON & ICONS
+       ======================================== -->
+  {% if organization.logo %}<link rel="icon" type="image/png" href="{{ organization.logo.url }}" />{% endif %}
+  <!-- Helpful additional icon links for Android / app stores -->
+  <link rel="icon" sizes="192x192" href="{% static 'pwa/icons/icon-192x192.png' %}">
+  <link rel="icon" sizes="512x512" href="{% static 'pwa/icons/icon-512x512.png' %}">
+  <link rel="apple-touch-icon" sizes="192x192" href="{% static 'pwa/icons/icon-192x192.png' %}">
+  <link rel="apple-touch-icon" sizes="512x512" href="{% static 'pwa/icons/icon-512x512.png' %}">
+
+  <link rel="manifest" href="/manifest.json">
+
+
+  <!-- ========================================
+       TITLE & SEO
+       ======================================== -->
+  <title>{% block title %} Hello Bajar {% endblock %}</title>
+
+  <!-- Open Graph / Social Media Preview -->
+  <meta property="og:title" content="Hello Bajar">
+  <meta property="og:description" content="Your modern ecommerce store for quality products">
+  <meta property="og:image" content="{% if organization.logo %}{{ organization.logo.url }}{% else %}{% static 'pwa/icons/icon-512x512.png' %}{% endif %}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+
+  <!-- ========================================
+       EXTERNAL CSS LIBRARIES
+       ======================================== -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+  <!-- ========================================
+       TAILWIND CSS
+       ======================================== -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- ========================================
+       GOOGLE FONTS
+       ======================================== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- ========================================
+       CUSTOM STYLES
+       ======================================== -->
+  <style>
+    /* ============================================
+       CSS VARIABLES
+       ============================================ */
+    :root {
+      --primary: #FF7F00;
+      --primary-dark: #CC6600;
+      --bg-brown: #8B4513;
+      --text-light: #ffffff;
+      --text-primary: #333333;
+      --text-secondary: #666666;
+      --bg-light: #fff8f0;
+      --success: #2ecc71;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    /* ============================================
+       TYPOGRAPHY
+       ============================================ */
+    body, p, span, li, button, input { 
+      font-family: 'Roboto', sans-serif; 
+    }
+    
+    h1, h2, h3, h4, h5, h6 { 
+      font-family: 'Playfair Display', Georgia, serif; 
+    }
+
+    /* ============================================
+       BUTTON STYLES
+       ============================================ */
+    .btn { 
+      padding: 0.75rem 1.5rem; 
+      border-radius: 0.5rem; 
+      font-weight: 600; 
+      transition: all 0.3s ease; 
+      cursor: pointer; 
+    }
+    
+    .btn-primary { 
+      background-color: var(--primary); 
+      color: var(--text-light); 
+      box-shadow: var(--shadow-sm); 
+    }
+    
+    .btn-primary:hover { 
+      background-color: var(--primary-dark); 
+      transform: translateY(-1px); 
+      box-shadow: var(--shadow-md); 
+    }
+
+    /* ============================================
+       ANIMATIONS
+       ============================================ */
+    .fade-in { 
+      animation: fadeIn 0.5s ease-in; 
+    }
+    
+    @keyframes fadeIn { 
+      from { opacity: 0; } 
+      to { opacity: 1; } 
+    }
+
+    /* ============================================
+       LOADING OVERLAY
+       ============================================ */
+    #loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0; 
+      left: 0;
+      width: 100%; 
+      height: 100%;
+      background: rgba(255, 255, 255, 0.7);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    #loading-overlay.show { 
+      display: flex; 
+    }
+
+    /* ============================================
+       CUSTOM SCROLLBAR (Webkit Browsers)
+       ============================================ */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #fff3e6;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #FF7F00;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #CC6600;
+    }
+
+    /* Firefox Scrollbar */
+    html {
+      scrollbar-color: #FF7F00 #fff3e6;  
+      scrollbar-width: thin;
+    }
+
+    /* ============================================
+       GOOGLE TRANSLATE - HIDE TOP BAR
+       ============================================ */
+    .goog-te-banner-frame.skiptranslate,
+    .skiptranslate { 
+      display: none !important; 
+    }
+    
+    body { 
+      top: 0 !important; 
+    }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+  <!-- ========================================
+       GOOGLE TRANSLATE ELEMENT (Hidden)
+       ======================================== -->
+  <div id="google_translate_element" style="display:none;"></div>
+
+  <!-- ========================================
+       LOADING OVERLAY
+       ======================================== -->
+  <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">
+    <div class="flex flex-col items-center gap-2">
+      <!-- Circular Spinner -->
+      <div class="w-12 h-12 rounded-full border-4 border-gray-200 border-t-[4px] animate-spin"
+           style="border-top-color:#f08e7a; border-bottom-color:#8B4513;">
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       NAVIGATION BAR
+       ======================================== -->
+  {% comment %} {% include 'website/components/navbar.html' %} {% endcomment %}
+
+  <!-- ========================================
+       MAIN CONTENT AREA
+       ======================================== -->
+  {% comment %} <main class="lg:mt-37 mt-10 flex-grow container mx-auto px-4 py-8"> {% endcomment %}
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ========================================
+       FOOTER
+       ======================================== -->
+  {% comment %} {% include 'website/components/footer.html' %} {% endcomment %}
+
+  <!-- ========================================
+       PWA INSTALL PROMPT
+       ======================================== -->
+  {% comment %} <div id="pwa-install-prompt" 
+    class="fixed bottom-4 left-1/2 -translate-x-1/2 
+    bg-white rounded-2xl shadow-lg 
+    px-4 py-3 flex items-center justify-between gap-3 
+    z-50 hidden transition-all duration-300 ease-in-out 
+    border border-gray-200 w-[95%] max-w-sm">
+
+    <!-- Icon + Text -->
+    <div class="flex items-center gap-3 flex-1">
+      {% if organization.logo %}<img src="{{ organization.logo.url }}" 
+           alt="App Icon" 
+           class="w-10 h-10 rounded-full object-cover">{% endif %}
+      <div class="flex flex-col">
+        <span class="text-sm font-bold text-gray-800">Install App</span>
+        <span class="text-xs text-gray-500">Get a better experience</span>
+      </div>
+    </div>
+
+    <!-- Install Button -->
+    <button id="pwa-install-btn" 
+            class="cursor-pointer bg-[#FF7F00] text-white px-4 py-1.5 rounded-full 
+            text-sm font-medium hover:bg-[#e67300] transition-colors whitespace-nowrap">
+      Install
+    </button>
+
+    <!-- Close Button -->
+    <button id="pwa-dismiss-btn" class="cursor-pointer text-gray-400 hover:text-gray-600 text-lg">
+      <i class="fas fa-times"></i>
+    </button>
+  </div> {% endcomment %}
+
+  <!-- ========================================
+       EXTERNAL JAVASCRIPT LIBRARIES
+       ======================================== -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.12/sweetalert2.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+  <!-- ========================================
+       DJANGO MESSAGES - TOASTR NOTIFICATIONS
+       ======================================== -->
+  <script>
+    /**
+     * Display Django messages using Toastr notifications
+     * Automatically shows success, error, warning, and info messages
+     */
+    $(document).ready(function() {
+      {% if messages %}
+        {% for message in messages %}
+          // Configure Toastr options
+          toastr.options = {
+            "closeButton": true, 
+            "progressBar": true, 
+            "positionClass": "toast-top-right", 
+            "timeOut": "3000"
+          };
+          
+          // Display appropriate message type
+          {% if message.tags == 'success' %} 
+            toastr.success("{{ message|escapejs }}");
+          {% elif message.tags == 'error' %} 
+            toastr.error("{{ message|escapejs }}");
+          {% elif message.tags == 'warning' %} 
+            toastr.warning("{{ message|escapejs }}");
+          {% else %} 
+            toastr.info("{{ message|escapejs }}");
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    });
+  </script>
+
+  <!-- ========================================
+       GOOGLE TRANSLATE - LANGUAGE SWITCHER
+       ======================================== -->
+  <script>
+    /**
+     * ============================================
+     * GLOBAL VARIABLES
+     * ============================================
+     */
+    let currentLang = 'en'; // Current selected language
+
+    /**
+     * ============================================
+     * LOADING OVERLAY FUNCTIONS
+     * ============================================
+     */
+    
+    /**
+     * Show loading overlay with spinner
+     */
+    function showLoading() { 
+      $('#loading-overlay').addClass('show'); 
+    }
+    
+    /**
+     * Hide loading overlay
+     */
+    function hideLoading() { 
+      $('#loading-overlay').removeClass('show'); 
+    }
+
+    /**
+     * ============================================
+     * CHANGE LANGUAGE FUNCTION
+     * ============================================
+     * Handles language switching between English and Nepali
+     * @param {string} lang - Language code ('en' or 'ne')
+     */
+    function changeLanguage(lang) {
+      // Prevent unnecessary language change
+      if (lang === currentLang) return;
+      
+      currentLang = lang;
+      showLoading();
+
+      // ==========================================
+      // SWITCH TO ENGLISH
+      // ==========================================
+      if (lang === 'en') {
+        // Clear all Google Translate cookies
+        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname;
+        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'googtrans=/en/en; path=/; domain=' + window.location.hostname;
+        document.cookie = 'googtrans=/en/en; path=/;';
+        
+        // Clear and set session storage
+        sessionStorage.removeItem('preferredLang');
+        sessionStorage.setItem('preferredLang', 'en');
+        
+        // Reset Google Translate dropdown if exists
+        const googleSelect = $('.goog-te-combo');
+        if (googleSelect.length) {
+          googleSelect.val('en').trigger('change');
+        }
+
+        // Reload page after brief delay
+        setTimeout(function() {
+          window.location.href = window.location.pathname + window.location.search;
+        }, 500);
+
+        return;
+      }
+
+      // ==========================================
+      // SWITCH TO NEPALI
+      // ==========================================
+      if (lang === 'ne') {
+        const googleSelect = $('.goog-te-combo');
+        
+        if (googleSelect.length) {
+          // Set Google Translate dropdown to Nepali
+          googleSelect.val('ne').trigger('change');
+        }
+
+        // Set cookies for Google Translate
+        document.cookie = 'googtrans=/en/ne; path=/; domain=' + window.location.hostname;
+        document.cookie = 'googtrans=/en/ne; path=/;';
+        sessionStorage.setItem('preferredLang', 'ne');
+
+        // Wait for translation then reload
+        setTimeout(function() {
+          hideLoading();
+          window.location.reload();
+        }, 800);
+
+        return;
+      }
+    }
+
+    /**
+     * ============================================
+     * INITIALIZE GOOGLE TRANSLATE
+     * ============================================
+     * Sets up Google Translate widget and applies saved preferences
+     */
+    function initGoogleTranslate() {
+      // Initialize Google Translate Element
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,ne',
+        autoDisplay: false,
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+      }, 'google_translate_element');
+
+      // Apply saved language preference from session storage
+      const preferredLang = sessionStorage.getItem('preferredLang');
+      
+      if (preferredLang === 'ne') {
+        setTimeout(function() {
+          const googleSelect = $('.goog-te-combo');
+          if (googleSelect.length) {
+            googleSelect.val('ne').trigger('change');
+          }
+        }, 500);
+      }
+
+      // Remove Google Translate top bar using MutationObserver
+      const observer = new MutationObserver(function() {
+        $('.goog-te-banner-frame.skiptranslate').css('display', 'none');
+        $('.skiptranslate iframe').css('display', 'none');
+      });
+      
+      observer.observe(document.body, { 
+        childList: true, 
+        subtree: true 
+      });
+    }
+
+    /**
+     * ============================================
+     * LOAD GOOGLE TRANSLATE SCRIPT
+     * ============================================
+     * Dynamically loads Google Translate API script
+     */
+    function loadGoogleTranslate() {
+      const script = document.createElement('script');
+      script.src = "https://translate.google.com/translate_a/element.js?cb=initGoogleTranslate";
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+
+    /**
+     * ============================================
+     * DOCUMENT READY - INITIALIZATION
+     * ============================================
+     */
+    $(document).ready(function() {
+      // Get saved language preference or default to English
+      const preferredLang = sessionStorage.getItem('preferredLang') || 'en';
+      
+      // Set language selector dropdown value
+      if (['en', 'ne'].includes(preferredLang)) {
+        $('#custom_translate').val(preferredLang);
+        currentLang = preferredLang;
+      }
+      
+      // Load Google Translate
+      loadGoogleTranslate();
+
+      /**
+       * Language selector change event handler
+       * Triggers language change when user selects different language
+       */
+      $('#custom_translate').on('change', function() {
+        changeLanguage($(this).val());
+      });
+    });
+  </script>
+
+  <!-- ========================================
+       PWA INSTALLATION LOGIC
+       ======================================== -->
+  <script>
+    /**
+     * ============================================
+     * PROGRESSIVE WEB APP (PWA) INSTALLATION
+     * ============================================
+     */
+    
+    let deferredPrompt; // Store the install prompt event
+    
+    // jQuery selectors for PWA elements
+    const $installPrompt = $('#pwa-install-prompt');
+    const $installBtn = $('#pwa-install-btn');
+    const $dismissBtn = $('#pwa-dismiss-btn');
+
+    /**
+     * Listen for beforeinstallprompt event
+     * This event fires when browser detects app can be installed
+     */
+    window.addEventListener('beforeinstallprompt', function(e) {
+      // Prevent default browser install prompt
+      e.preventDefault();
+      
+      // Save event for later use
+      deferredPrompt = e;
+      
+      // Show custom install prompt
+      $installPrompt.removeClass('hidden').addClass('flex');
+    });
+
+    /**
+     * Install button click handler
+     * Triggers the native browser install prompt
+     */
+    $installBtn.on('click', function(e) {
+      // Hide custom install prompt
+      $installPrompt.addClass('hidden').removeClass('flex');
+      
+      // Show native browser install prompt
+      deferredPrompt.prompt();
+      
+      // Wait for user response
+      deferredPrompt.userChoice.then(function(choiceResult) {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('✅ User accepted the PWA install prompt');
+        } else {
+          console.log('❌ User dismissed the PWA install prompt');
+        }
+        
+        // Clear the deferred prompt
+        deferredPrompt = null;
+      });
+    });
+
+    /**
+     * Dismiss button click handler
+     * Closes the install prompt without installing
+     */
+    $dismissBtn.on('click', function() {
+      $installPrompt.addClass('hidden').removeClass('flex');
+    });
+
+    /**
+     * ============================================
+     * SERVICE WORKER REGISTRATION
+     * ============================================
+     * Registers service worker for offline functionality
+     */
+    $(window).on('load', function() {
+      if ('serviceWorker' in navigator) {
+        // register the service worker at the origin root so it can control the whole app
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(function(registration) {
+            console.log('✅ ServiceWorker registered successfully:', registration.scope);
+
+            // Watch for updates to the service worker and prompt the user to reload
+            if (registration.waiting) {
+              // There's an updated service worker waiting to activate
+              showServiceWorkerUpdate(registration);
+            }
+
+            registration.addEventListener('updatefound', function() {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', function() {
+                  if (newWorker.state === 'installed') {
+                    // If there's already a controller, this is an update
+                    if (navigator.serviceWorker.controller) {
+                      showServiceWorkerUpdate(registration);
+                    }
+                  }
+                });
+              }
+            });
+
+          })
+          .catch(function(error) {
+            console.error('❌ ServiceWorker registration failed:', error);
+          });
+
+        // Helper: show a browser prompt to reload when a new SW is waiting
+        function showServiceWorkerUpdate(registration) {
+          try {
+            // Use SweetAlert if available for a nicer UX (fallback to confirm)
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                title: 'Update available',
+                text: 'A new version of the app is available. Reload to update?',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Reload',
+                cancelButtonText: 'Later'
+              }).then(result => {
+                if (result.isConfirmed) {
+                  // Tell the waiting worker to skipWaiting, then reload on controllerchange
+                  if (registration.waiting) {
+                    registration.waiting.postMessage({type: 'SKIP_WAITING'});
+                  }
+                }
+              });
+            } else {
+              if (confirm('A new version is available — reload to apply the update?')) {
+                if (registration.waiting) registration.waiting.postMessage({type: 'SKIP_WAITING'});
+              }
+            }
+
+            // When the new worker activates, reload the page
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
+              window.location.reload();
+            });
+          } catch (e) {
+            console.warn('Error showing update prompt', e);
+          }
+        }
+      }
+    });
+  </script>
+
+  <!-- ========================================
+       ADDITIONAL CUSTOM SCRIPTS
+       ======================================== -->
+  {% block extra_js %}
+  <script src="{% static 'js/cart.js' %}"></script>
+  {% endblock %}
+  
+</body>
+</html>

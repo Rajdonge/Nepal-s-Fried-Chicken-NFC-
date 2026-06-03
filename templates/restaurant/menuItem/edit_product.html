@@ -1,0 +1,447 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-edit"></i> Edit Product</h1>
+    <a href="{% url 'restaurant_menu_items_list' %}" class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+      <i class="fas fa-arrow-left"></i>
+      Back to list
+    </a>
+  </div>
+
+  <form method="post" action="{% url 'restaurant_menu_item_update' product.id %}" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Basic Information Section -->
+    <div class="border-b pb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-info-circle"></i> Basic Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-th-large"></i> Category <span class="text-red-600">*</span>
+          </label>
+          <select name="category" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+            {% for c in categories %}
+              <option value="{{ c.id }}" {% if product.category and product.category.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-layer-group"></i> Subcategory <span class="text-red-600">*</span>
+          </label>
+          <select name="subcategory" data-selected="{{ product.subcategory.id }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+            <option value="">Select subcategory</option>
+          </select>
+        </div>
+
+            <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        <i class="fas fa-sitemap"></i> Child Category
+      </label>
+      <select name="child_category" id="child_category" data-selected="{{ product.child_category.id }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5">
+        <option value="">Select child category (Optional)</option>
+      </select>
+    </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-copyright"></i> Brand
+          </label>
+          <select name="brand" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Select a brand (Optional)</option>
+            {% for b in brands %}
+              <option value="{{ b.id }}" {% if product.brand and product.brand.id == b.id %}selected{% endif %}>{{ b.name }}</option>
+            {% endfor %}
+          </select>
+          <p class="text-xs text-gray-500 mt-1">Leave empty if no brand</p>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-box"></i> Product Name <span class="text-red-600">*</span>
+          </label>
+          <input type="text" name="name" value="{{ product.name }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-align-left"></i> Description <span class="text-red-600">*</span>
+          </label>
+          <textarea id="description" name="description" rows="4" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>{{ product.description }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing & Inventory Section -->
+    <div class="border-b pb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-money-bill-wave"></i> Pricing & Inventory</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-tag"></i> Price (Rs) <span class="text-red-600">*</span>
+          </label>
+          <input type="number" step="0.01" name="price" min="0" value="{{ product.price }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-dollar-sign"></i> Cost Price (Rs)
+          </label>
+          <input type="number" step="0.01" name="cost_price" min="0" value="{{ product.cost_price }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <p class="text-xs text-gray-500 mt-1">For tracking purposes only</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-cubes"></i> Stock Quantity <span class="text-red-600">*</span>
+          </label>
+          <input type="number" name="stock" min="0" value="{{ product.stock }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-exclamation-triangle"></i> Low Stock Alert
+          </label>
+          <input type="number" name="low_stock_alert" min="1" value="{{ product.low_stock_alert }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <p class="text-xs text-gray-500 mt-1">Get notified when stock is low</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-shipping-fast"></i> Shipping Cost (Rs) <span class="text-red-600">*</span>
+          </label>
+          <input type="number" step="0.01" name="shipping_cost" min="0" value="{{ product.shipping_cost|default:0 }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+          <p class="text-xs text-gray-500 mt-1">Enter 0 for free shipping</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-calendar-alt"></i> Estimated Delivery (Days) <span class="text-red-600">*</span>
+          </label>
+          <input type="number" name="estimated_delivery_days" min="1" max="365" value="{{ product.estimated_delivery_days|default:3 }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+          <p class="text-xs text-gray-500 mt-1">Number of days for delivery</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Details Section -->
+    <div class="border-b pb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-clipboard-list"></i> Product Details</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-weight"></i> Weight (kg)
+          </label>
+          <input type="number" step="0.01" name="weight" min="0" value="{{ product.weight }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0.00">
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" name="is_featured" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500" {% if product.is_featured %}checked{% endif %}>
+            <span class="ml-2 text-sm font-medium text-gray-700"><i class="fas fa-star"></i> Mark as Featured Product</span>
+          </label>
+          <p class="text-xs text-gray-500 mt-1 ml-6">Featured products appear on the homepage</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Images Section -->
+    <div class="border-b pb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-images"></i> Product Images</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-image"></i> Main Image
+          </label>
+          {% if product.main_image %}
+            <div class="mb-3">
+              <p class="text-xs text-gray-500 mb-2">Current Image:</p>
+              <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="h-32 w-32 object-cover rounded-lg border-2 border-gray-200"/>
+            </div>
+          {% endif %}
+          <input type="file" name="main_image" id="main_image" accept=".jpg,.jpeg,.png,.gif" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+          <p class="text-xs text-gray-500 mt-1">Allowed: .jpg, .jpeg, .png, .gif (Max: 15MB)</p>
+          <p id="main_image_error" class="text-xs text-red-600 mt-1 hidden">Invalid file format!</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fas fa-photo-video"></i> Add Gallery Images
+          </label>
+          {% if product.images.all %}
+            <div class="mb-3">
+              <p class="text-xs text-gray-500 mb-2">Current Gallery Images:</p>
+              <div class="flex flex-wrap gap-2">
+                {% for img in product.images.all %}
+                  <img src="{{ img.image.url }}" alt="Gallery" class="h-20 w-20 object-cover rounded-lg border-2 border-gray-200"/>
+                {% endfor %}
+              </div>
+            </div>
+          {% else %}
+            <p class="text-xs text-gray-400 mb-2">No gallery images yet</p>
+          {% endif %}
+          <input type="file" name="gallery_images" id="gallery_images" accept=".jpg,.jpeg,.png,.gif" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" multiple>
+          <p class="text-xs text-gray-500 mt-1">Multiple images allowed (Max: 15MB each)</p>
+          <p id="gallery_images_error" class="text-xs text-red-600 mt-1 hidden">One or more files have invalid formats!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variants Section -->
+    <div class="pb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-sliders-h"></i> Product Variants</h2>
+      
+      <!-- Existing Variants -->
+      {% if product.variants.all %}
+        <div class="mb-6">
+          <h3 class="text-md font-medium text-gray-700 mb-3">Existing Variants</h3>
+          <div class="space-y-4">
+            {% for v in product.variants.all %}
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <input type="hidden" name="existing_variant_id[]" value="{{ v.id }}" />
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select name="existing_variant_type[]" class="block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  <option value="size" {% if v.variant_type == 'size' %}selected{% endif %}>Size</option>
+                  <option value="color" {% if v.variant_type == 'color' %}selected{% endif %}>Color</option>
+                  <option value="weight" {% if v.variant_type == 'weight' %}selected{% endif %}>Weight</option>
+                  <option value="storage" {% if v.variant_type == 'storage' %}selected{% endif %}>Storage</option>
+                  <option value="ram" {% if v.variant_type == 'ram' %}selected{% endif %}>RAM</option>
+                  <option value="material" {% if v.variant_type == 'material' %}selected{% endif %}>Material</option>
+                  <option value="style" {% if v.variant_type == 'style' %}selected{% endif %}>Style</option>
+                  <option value="pattern" {% if v.variant_type == 'pattern' %}selected{% endif %}>Pattern</option>
+                  <option value="flavor" {% if v.variant_type == 'flavor' %}selected{% endif %}>Flavor</option>
+                  <option value="other" {% if v.variant_type == 'other' %}selected{% endif %}>Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input type="text" name="existing_variant_name[]" value="{{ v.name }}" class="block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Price Adj. (Rs)</label>
+                <input type="number" step="0.01" name="existing_variant_price_adjustment[]" value="{{ v.price_adjustment }}" class="block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+              </div>
+              <div class="flex items-end">
+                <label class="inline-flex items-center w-full justify-center p-2.5 bg-red-50 rounded-lg border border-red-200 cursor-pointer hover:bg-red-100 transition">
+                  <input type="checkbox" name="existing_variant_delete[]" value="{{ v.id }}" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-2 focus:ring-red-500">
+                  <span class="ml-2 text-sm font-medium text-red-600"><i class="fas fa-trash"></i> Delete</span>
+                </label>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="text-sm text-gray-500 mb-4">No variants yet. Add some below.</p>
+      {% endif %}
+
+      <!-- Add New Variants -->
+      <div>
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-md font-medium text-gray-700">Add New Variants</h3>
+          <button type="button" id="addVariantBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+            <i class="fas fa-plus"></i>
+            Add Variant
+          </button>
+        </div>
+        <div id="variantsContainer" class="space-y-4">
+          <!-- New variants will be added here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end gap-4 pt-4 border-t">
+      <a href="{% url 'restaurant_menu_items_list' %}" class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+        <i class="fas fa-times"></i> Cancel
+      </a>
+      <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+        <i class="fas fa-check"></i>
+        Update Product
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.ckeditor.com/4.21.0/full/ckeditor.js"></script>
+
+<script>
+$(document).ready(function() {
+
+    // ---------------------------
+    // 1. CKEditor Initialization
+    // ---------------------------
+    if ($('textarea[name="description"]').length && typeof CKEDITOR !== 'undefined') {
+        CKEDITOR.replace('description', {
+            height: 400,
+            toolbar: [
+                { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo'] },
+                { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+                { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'RemoveFormat'] },
+                { name: 'colors', items: ['TextColor', 'BGColor'] },
+                { name: 'paragraph', items: ['NumberedList','BulletedList','-','Outdent','Indent','-','JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock','-','Blockquote','CreateDiv'] },
+                { name: 'insert', items: ['HorizontalRule','Smiley','SpecialChar','Link','Unlink'] },
+                { name: 'tools', items: ['Maximize','ShowBlocks','Source'] }
+            ],
+            removePlugins: 'elementspath',
+            resize_enabled: true
+        });
+
+        $('form').on('submit', function() {
+            CKEDITOR.instances.description.updateElement();
+        });
+    }
+
+    // ---------------------------
+    // 2. File Validation
+    // ---------------------------
+    const allowedFormats = ['image/jpeg','image/jpg','image/png','image/gif'];
+    const maxSize = 15 * 1024 * 1024; // 15MB
+
+    function validateFile(inputSelector, errorSelector) {
+        $(inputSelector).on('change', function() {
+            const files = Array.from(this.files);
+            const errorEl = $(errorSelector);
+            let hasError = false;
+
+            files.forEach(file => {
+                if (!allowedFormats.includes(file.type)) {
+                    hasError = true;
+                    errorEl.text('Invalid file format!').removeClass('hidden');
+                }
+                if (file.size > maxSize) {
+                    hasError = true;
+                    errorEl.text('File size must be less than 15MB!').removeClass('hidden');
+                }
+            });
+
+            if (!hasError) {
+                errorEl.addClass('hidden');
+            } else {
+                $(this).val('');
+            }
+        });
+    }
+
+    validateFile('#main_image', '#main_image_error');
+    validateFile('#gallery_images', '#gallery_images_error');
+
+    // ---------------------------
+    // 3. Variant Management
+    // ---------------------------
+    let variantCount = 0;
+    $('#addVariantBtn').on('click', function() {
+        variantCount++;
+        const row = $(`
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start p-4 bg-gray-50 rounded-lg border border-gray-200" id="variant-${variantCount}">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <select name="variant_type[]" class="block w-full border border-gray-300 rounded-lg p-2.5">
+                        <option value="size">Size</option>
+                        <option value="color">Color</option>
+                        <option value="weight">Weight</option>
+                        <option value="storage">Storage</option>
+                        <option value="ram">RAM</option>
+                        <option value="material">Material</option>
+                        <option value="style">Style</option>
+                        <option value="pattern">Pattern</option>
+                        <option value="flavor">Flavor</option>
+                        <option value="other" selected>Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" name="variant_name[]" class="block w-full border border-gray-300 rounded-lg p-2.5" placeholder="e.g., XL, Red" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Price Adj. (Rs)</label>
+                    <input type="number" step="0.01" name="variant_price_adjustment[]" class="block w-full border border-gray-300 rounded-lg p-2.5" value="0" />
+                </div>
+                <div class="flex items-end">
+                    <button type="button" class="w-full bg-red-50 text-red-600 px-3 py-2.5 rounded-lg hover:bg-red-100 transition border border-red-200 remove-variant">
+                        <i class="fas fa-trash"></i> Remove
+                    </button>
+                </div>
+            </div>
+        `);
+        $('#variantsContainer').append(row);
+    });
+
+    $(document).on('click', '.remove-variant', function() {
+        $(this).closest('div[id^="variant-"]').remove();
+    });
+
+// ---------------------------
+// AJAX: Load Subcategories & Child Categories
+// ---------------------------
+function loadSubcategories(categoryId, selectedSubcatId = null) {
+    const subcatSelect = $('select[name="subcategory"]');
+    subcatSelect.empty().append('<option value="">Select subcategory</option>');
+
+    if (categoryId) {
+        $.ajax({
+            url: "{% url 'get_subcategories' 0 %}".replace('0', categoryId),
+            type: 'GET',
+            success: function(data) {
+                $.each(data, function(_, subcat) {
+                    const selected = (selectedSubcatId && subcat.id == selectedSubcatId) ? 'selected' : '';
+                    subcatSelect.append(`<option value="${subcat.id}" ${selected}>${subcat.name}</option>`);
+                });
+                if (selectedSubcatId) {
+                    loadChildCategories(selectedSubcatId);
+                }
+            }
+        });
+    }
+}
+
+function loadChildCategories(subcategoryId, selectedChildCatId = null) {
+    const childcatSelect = $('select[name="child_category"]');
+    childcatSelect.empty().append('<option value="">Select child category (Optional)</option>');
+
+    if (subcategoryId) {
+        $.ajax({
+            url: `/admin-dashboard/childcategories/${subcategoryId}/`,
+            type: 'GET',
+            success: function(data) {
+                $.each(data, function(_, childcat) {
+                    const selected = (selectedChildCatId && childcat.id == selectedChildCatId) ? 'selected' : '';
+                    childcatSelect.append(`<option value="${childcat.id}" ${selected}>${childcat.name}</option>`);
+                });
+            }
+        });
+    }
+}
+
+$('select[name="category"]').on('change', function() {
+    loadSubcategories($(this).val());
+});
+
+$('select[name="subcategory"]').on('change', function() {
+    loadChildCategories($(this).val());
+});
+
+// Initialize on page load (edit page)
+const initialCategory = $('select[name="category"]').val();
+const initialSubcategory = $('select[name="subcategory"]').data('selected');
+const initialChildCategory = $('select[name="child_category"]').data('selected');
+if (initialCategory) {
+    loadSubcategories(initialCategory, initialSubcategory);
+}
+if (initialSubcategory) {
+    setTimeout(function() {
+        loadChildCategories(initialSubcategory, initialChildCategory);
+    }, 100);  // Small delay to ensure subcategories load first
+}
+
+});
+</script>
+
+{% endblock %}

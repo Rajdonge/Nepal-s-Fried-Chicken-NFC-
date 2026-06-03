@@ -1,0 +1,113 @@
+{% extends 'dashboard/delivery/pages/base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<section class="px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
+    <!-- Page Heading -->
+    <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+        <i class="fas fa-user-circle text-blue-600"></i> My Profile
+    </h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <!-- Profile Edit Form -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6 mb-6">
+                <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i class="fas fa-edit text-blue-600"></i> Personal Information
+                </h3>
+                <form method="post" class="space-y-4 sm:space-y-5">
+                    {% csrf_token %}
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-user mr-1"></i> First Name
+                            </label>
+                            <input type="text" value="{{ request.user.first_name }}" disabled class="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-user mr-1"></i> Last Name
+                            </label>
+                            <input type="text" value="{{ request.user.last_name }}" disabled class="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-envelope mr-1"></i> Email
+                        </label>
+                        <input type="email" value="{{ request.user.email }}" disabled class="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-phone mr-1"></i> Phone Number
+                        </label>
+                        <input type="tel" name="phone" value="{{ delivery_person.phone }}" class="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-home mr-1"></i> Address
+                        </label>
+                        <textarea name="address" class="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" rows="3">{{ delivery_person.address }}</textarea>
+                    </div>
+
+                 
+
+                    <div class="flex gap-2 sm:gap-3 pt-4">
+                        <button type="submit" class="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-sm sm:text-base">
+                            <i class="fas fa-save"></i> <span class="hidden sm:inline">Save Changes</span><span class="sm:hidden">Save</span>
+                        </button>
+                        <a href="{% url 'delivery_dashboard' %}" class="flex-1 sm:flex-auto flex items-center justify-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition text-sm sm:text-base">
+                            <i class="fas fa-times"></i> <span class="hidden sm:inline">Cancel</span>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Profile Stats (Sidebar) -->
+        <div class="lg:col-span-1 space-y-4 sm:space-y-6">
+            <!-- Profile Card -->
+            <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-lg shadow-md p-4 sm:p-6">
+                <div class="text-center mb-4">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                        <i class="fas fa-user-circle text-blue-600 text-3xl sm:text-5xl"></i>
+                    </div>
+                    <h4 class="text-base sm:text-xl font-bold">{{ request.user.first_name|default:request.user.username }} {{ request.user.last_name }}</h4>
+                    <p class="text-blue-100 text-xs sm:text-sm">Delivery Person</p>
+                </div>
+                <div class="border-t border-blue-400 pt-4">
+                    <p class="text-xs sm:text-sm text-blue-100">
+                        <i class="fas fa-check-circle mr-2"></i> Account Status: <span class="font-semibold">{% if delivery_person.is_active %}Active{% else %}Inactive{% endif %}</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Performance Stats -->
+            <div class="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6">
+                <h4 class="font-bold text-gray-900 mb-4 flex items-center gap-2 text-sm sm:text-base">
+                    <i class="fas fa-chart-bar text-green-600"></i> Performance
+                </h4>
+                <div class="space-y-3 text-xs sm:text-sm">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Total Deliveries</span>
+                        <span class="font-bold text-gray-900 text-sm sm:text-base">{{ total_deliveries }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Delivered</span>
+                        <span class="font-bold text-green-600 text-sm sm:text-base">{{ successful_deliveries }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Failed</span>
+                        <span class="font-bold text-red-600 text-sm sm:text-base">{{ failed_deliveries }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

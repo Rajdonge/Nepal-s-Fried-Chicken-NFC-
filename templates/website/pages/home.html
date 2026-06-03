@@ -1,0 +1,335 @@
+{% extends 'website/components/base.html' %}
+{% block title %}Home - {% if organization.name %}{{ organization.name }}{% else %}Nepal's Fried Chicken{% endif %}{% endblock %}
+
+{% block content %}
+
+<!-- Hero Banner Slider --> 
+<section class="w-full relative rounded-2xl overflow-hidden lg:px-18 mt-1" role="banner">
+  <div class="swiper heroSwiper relative w-full max-h-[500px] rounded-2xl shadow-2xl overflow-hidden" aria-label="Featured products slider">
+    <div class="swiper-wrapper">
+      {% for s in sliders %}
+      {% if s.is_active %}
+      <div class="swiper-slide relative group">
+        <!-- Clickable link to slider -->
+        <a href="{{ s.link|default:'#' }}" class="block w-full h-full">
+          <img src="{{ s.image.url }}" alt="Slider Image"
+               class="w-full h-full object-cover rounded-2xl transition-transform duration-500 group-hover:scale-101"
+               style="max-height: 500px;"
+               loading="{% if forloop.first %}eager{% else %}lazy{% endif %}" />
+        </a>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="swiper-pagination !bottom-4"></div>
+    <div class="swiper-button-next !text-white !right-4 after:!text-3xl"></div>
+    <div class="swiper-button-prev !text-white !left-4 after:!text-3xl"></div>
+  </div>
+</section>
+
+
+
+  <!-- Restaurants Grid -->
+
+  <section class="container mx-auto px-4 py-8 ">
+      <div class="mb-6">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-[var(--text-primary)] inline-block relative pb-2">
+      Restaurants
+      <span class="absolute left-0 bottom-0 w-20 h-1 bg-[var(--bg-brown)] rounded-full"></span>
+    </h2>
+  </div>
+  <br>
+    <div id="restaurantsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      {% for restaurant in popular_restaurants %}
+        <a href="{% url 'restaurant_details' restaurant.slug %}" class="restaurant-card bg-white rounded-xl shadow-md overflow-hidden block w-full max-w-[250px] mx-auto transition hover:shadow-lg"
+           data-restaurant-name="{{ restaurant.restaurant_name|lower }}"
+           data-rating="{{ restaurant.rating|default:0 }}"
+           data-products="{{ restaurant.menu_items.count }}">
+          <div class="h-28 sm:h-32 md:h-36 lg:h-40 w-full overflow-hidden">
+            <img 
+            src="{% if restaurant.banner %}{{ restaurant.banner.url }}{% else %}https://via.placeholder.com/400x160{% endif %}"
+            alt="{{ restaurant.restaurant_name }} Banner"
+              class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+              loading="lazy"
+            >
+          </div>
+          <div class="p-2 sm:p-3 md:p-4 lg:p-6 text-center flex flex-col">
+            <h3 class="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-[var(--text-primary)] mb-1 sm:mb-2 line-clamp-2">{{ restaurant.restaurant_name }}</h3>
+            <div class="flex items-center justify-center gap-0.5 sm:gap-1 mb-1 sm:mb-2 text-yellow-400 text-xs sm:text-xs md:text-sm">
+              {% with avg_rating=restaurant.rating|default:0 %}
+                {% for i in '12345'|make_list %}
+                  <i class="fas fa-star text-[10px] sm:text-xs{% if forloop.counter0 >= avg_rating|floatformat:0 %} text-gray-300{% endif %}"></i>
+                {% endfor %}
+                <span class="text-[var(--text-secondary)] ml-0.5 sm:ml-1 text-xs sm:text-xs">({{ avg_rating|floatformat:1 }})</span>
+              {% endwith %}
+            </div>
+            <div class="text-[var(--text-secondary)] text-xs sm:text-xs md:text-sm mb-1 sm:mb-3 flex-grow flex items-center justify-center">
+              <i class="fas fa-utensils text-[var(--primary)] mr-0.5 sm:mr-1 text-xs sm:text-xs"></i>
+              {{ restaurant.menu_items.count }} <span class="hidden sm:inline"> Items</span>
+            </div>
+            <button class="btn btn-primary px-2 py-0.5 sm:px-4 sm:py-1 md:py-1.5 lg:py-2 text-xs sm:text-xs md:text-sm lg:text-sm font-medium rounded-lg hover:shadow-md transition">Order Now</button>
+          </div>
+        </a>
+      {% empty %}
+        <div id="noResults" class="col-span-full text-center py-12">
+          <i class="fas fa-store-slash text-6xl text-gray-300 mb-4"></i>
+          <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-2">No Restaurants Found</h3>
+          <p class="text-[var(--text-secondary)]"></p>
+        </div>
+      {% endfor %}
+    </div>
+
+  <!-- Pagination -->
+  <div class="mt-6 flex justify-center">
+    {% if featured_products.has_other_pages %}
+    <nav class="inline-flex space-x-2">
+      {% if featured_products.has_previous %}
+      <a href="?featured_page={{ featured_products.previous_page_number }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">&laquo; Prev</a>
+      {% endif %}
+      {% for num in featured_products.paginator.page_range %}
+      <a href="?featured_page={{ num }}" class="px-3 py-1 rounded {% if featured_products.number == num %}bg-orange-500 text-white{% else %}bg-gray-200 hover:bg-gray-300{% endif %}">{{ num }}</a>
+      {% endfor %}
+      {% if featured_products.has_next %}
+      <a href="?featured_page={{ featured_products.next_page_number }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next &raquo;</a>
+      {% endif %}
+    </nav>
+    {% endif %}
+  </div>
+</section>
+
+
+<br><br>
+
+
+<!-- food items -->
+<section class="mt-12 container mx-auto md:px-12 ">
+  <div class="mb-6">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-[var(--text-primary)] inline-block relative pb-2">
+      Menu Items
+      <span class="absolute left-0 bottom-0 w-20 h-1 bg-[var(--bg-brown)] rounded-full"></span>
+    </h2>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 lg:gap-4">
+    {% for product in all_items %}
+    <div class="product-card relative bg-gray-100 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 w-full max-w-[250px] mx-auto cursor-pointer"
+         data-product-id="{{ product.id }}"
+         data-in-stock="{{ product.is_available|yesno:'true,false' }}">
+      
+      <!-- Product Image -->
+      <a href="{% url 'menu_item_details' product.slug %}" class="block relative group bg-white rounded-xl m-2">
+        <img src="{{ product.image.url|default:'https://via.placeholder.com/250' }}"
+             alt="{{ product.name }}"
+             class="w-full h-48 sm:h-56 md:h-60 object-contain rounded-xl transition-transform duration-300 group-hover:scale-105" />
+        {% if not product.is_available %}
+        <div class="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+          <span class="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">Not Available</span>
+        </div>
+        {% endif %}
+      </a>
+
+      <!-- Product Info -->
+      <section class="p-3 space-y-2">
+        <div class="flex justify-between items-start gap-2">
+          <a href="{% url 'menu_item_details' product.slug %}"
+             class="text-sm text-[var(--text-primary)] line-clamp-2 hover:underline">
+             {{ product.name }}
+          </a>
+        <p class="text-xs font-medium {% if product.is_available %}text-green-600{% else %}text-red-600{% endif %}">
+                {% if product.is_available %}Available{% else %}Not Available{% endif %}
+              </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <p class="font-bold text-orange-600 text-sm sm:text-base">Rs {{ product.price|floatformat:0 }}</p>
+        </div>
+
+        <!-- Add to Cart -->
+        <div class="flex items-center justify-between gap-2 mt-2">
+          <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
+            <button class="decreaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm transition"
+                    {% if not product.is_available %}disabled{% endif %}><i class="fas fa-minus text-xs"></i></button>
+            <input type="number" value="1" min="1" max="10"
+                   class="qtyInput w-12 text-center text-sm border-x-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium text-gray-900"
+                   {% if not product.is_available %}disabled{% endif %}>
+            <button class="increaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm transition"
+                    {% if not product.is_available %}disabled{% endif %}><i class="fas fa-plus text-xs"></i></button>
+          </div>
+
+          <button class="add-to-cart flex-1 flex items-center justify-center gap-1 text-xs sm:text-sm px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 active:bg-orange-700 transition shadow-sm cursor-pointer"
+                  data-product-id="{{ product.id }}"
+                  {% if not product.is_available %}disabled{% endif %}>
+            <i class="fa-solid fa-cart-shopping text-xs"></i><span>Add</span>
+          </button>
+        </div>
+      </section>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-12 text-gray-500">No food items available.</div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Full Width Simple Banner Section -->
+<section class="mt-26 w-[90%] mx-auto">
+  <div class="w-full overflow-hidden">
+    {% if banners %}
+      {% for banner in banners %}
+        {% if banner.link %}
+          <a href="{{ banner.link }}" target="_blank">
+            <img
+              src="{{ banner.image.url }}"
+              alt="{{ banner.title|default:'Offer' }}"
+              class="w-full h-auto object-cover rounded-xl"
+            />
+          </a>
+        {% else %}
+          <img
+              src="{{ banner.image.url }}"
+              alt="{{ banner.title|default:'Offer' }}"
+              
+              class="w-full h-auto max-h-[600px] object-contain rounded-xl"
+          />
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </div>
+</section>
+
+
+
+<!-- Best Offers -->
+<section class="mt-20 container mx-auto md:px-12">
+  <div class="mb-6">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-[var(--text-primary)] inline-block relative pb-2">
+      Best Food Deals
+      <span class="absolute left-0 bottom-0 w-20 h-1 bg-[var(--bg-brown)] rounded-full"></span>
+    </h2>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 lg:gap-4">
+    {% for product in featured_items %}
+    <div class="product-card relative bg-gray-100 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 w-full max-w-[250px] mx-auto cursor-pointer"
+         data-product-id="{{ product.id }}"
+         data-in-stock="{{ product.is_available|yesno:'true,false' }}">
+      
+      <a href="{% url 'menu_item_details' product.slug %}" class="block relative group bg-white rounded-xl m-2">
+        <img src="{{ product.image.url|default:'https://via.placeholder.com/250' }}"
+             alt="{{ product.name }}"
+             class="w-full h-48 sm:h-56 md:h-60 object-contain rounded-xl transition-transform duration-300 group-hover:scale-105" />
+        {% if not product.is_available %}
+        <div class="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+          <span class="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">Not Available</span>
+        </div>
+        {% endif %}
+      </a>
+
+      <section class="p-3 space-y-2">
+        <div class="flex justify-between items-start gap-2">
+          <a href="{% url 'menu_item_details' product.slug %}" class="text-sm text-[var(--text-primary)] line-clamp-2 hover:underline">
+            {{ product.name }}
+          </a>
+         <p class="text-xs font-medium {% if product.is_available %}text-green-600{% else %}text-red-600{% endif %}">
+                {% if product.is_available %}Available{% else %}Not Available{% endif %}
+              </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <p class="font-bold text-orange-600 text-sm sm:text-base">Rs {{ product.price|floatformat:0 }}</p>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 mt-2">
+          <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
+            <button class="decreaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm"
+                    {% if not product.is_available %}disabled{% endif %}><i class="fas fa-minus text-xs"></i></button>
+            <input type="number" value="1" min="1" max="10"
+                   class="qtyInput w-12 text-center text-sm border-x-2 border-gray-300"
+                   {% if not product.is_available %}disabled{% endif %}>
+            <button class="increaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm"
+                    {% if not product.is_available %}disabled{% endif %}><i class="fas fa-plus text-xs"></i></button>
+          </div>
+
+          <button class="add-to-cart flex-1 flex items-center justify-center gap-1 text-xs sm:text-sm px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 active:bg-orange-700 transition shadow-sm cursor-pointer"
+                  data-product-id="{{ product.id }}"
+                  {% if not product.is_available %}disabled{% endif %}>
+            <i class="fa-solid fa-cart-shopping text-xs"></i><span>Add</span>
+          </button>
+        </div>
+      </section>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-12 text-gray-500">No food deals available.</div>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+  $(document).ready(function () {
+    new Swiper(".heroSwiper", {
+      loop: true,
+      autoplay: { delay: 5000 },
+      pagination: { el: ".swiper-pagination", clickable: true },
+      navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+      speed: 1000,
+    });
+
+    // Toast setup
+    function showToast(message, type = "info") {
+      toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-top-right", timeOut: "3000" };
+      toastr[type](message);
+    }
+
+    // Add to cart
+    $(".add-to-cart").on("click", function (e) {
+      e.preventDefault();
+      const $btn = $(this);
+      const $card = $btn.closest(".product-card");
+      const productId = $btn.data("product-id");
+      const qty = parseInt($card.find(".qtyInput").val()) || 1;
+
+      $btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+      $.ajax({
+        url: "/api/cart/add/",
+        method: "POST",
+        headers: { "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val() },
+        contentType: "application/json",
+        data: JSON.stringify({ menu_item_id: productId, quantity: qty }),
+        success: (res) => {
+          if (res.success) {
+            showToast(res.message, "success");
+            $("#desktopCartBadge, #mobileCartBadge").text(res.cart_count);
+          } else {
+            showToast(res.message, "warning");
+          }
+        },
+        error: (xhr) => {
+          try {
+            const res = JSON.parse(xhr.responseText);
+            showToast(res.message || "Error adding to cart", "error");
+          } catch {
+            showToast("Error adding to cart", "error");
+          }
+        },
+        complete: () => $btn.prop("disabled", false).html('<i class="fa-solid fa-cart-shopping"></i><span>Add</span>'),
+      });
+    });
+
+    $(".increaseQty").click(function () {
+      const $input = $(this).siblings(".qtyInput");
+      $input.val(parseInt($input.val()) + 1);
+    });
+
+    $(".decreaseQty").click(function () {
+      const $input = $(this).siblings(".qtyInput");
+      const val = parseInt($input.val());
+      if (val > 1) $input.val(val - 1);
+    });
+  });
+</script>
+{% endblock %}

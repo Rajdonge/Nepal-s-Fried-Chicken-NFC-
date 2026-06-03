@@ -1,0 +1,61 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 flex flex-col items-center py-10">
+
+  <!-- Card -->
+  <div class="bg-white rounded-3xl shadow-xl p-8 w-full max-w-lg">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">
+      <i class="fas fa-edit text-blue-600"></i> Edit Profile
+    </h2>
+
+    <form method="POST" class="space-y-5">
+      {% csrf_token %}
+
+      <!-- First Name -->
+      <div>
+        <label class="text-gray-700 font-medium mb-1 block">First Name</label>
+        <input type="text" name="first_name" value="{{ admin_user.first_name }}" required
+               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring focus:ring-blue-100 focus:border-blue-600">
+      </div>
+
+      <!-- Last Name -->
+      <div>
+        <label class="text-gray-700 font-medium mb-1 block">Last Name</label>
+        <input type="text" name="last_name" value="{{ admin_user.last_name }}" required
+               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring focus:ring-blue-100 focus:border-blue-600">
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label class="text-gray-700 font-medium mb-1 block">Email</label>
+        <input type="email" name="email" value="{{ admin_user.email }}" required
+               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring focus:ring-blue-100 focus:border-blue-600">
+      </div>
+
+
+
+      <!-- Buttons -->
+      <div class="flex justify-between gap-4 mt-6">
+        <a href="{% url 'admin_profile' %}"
+           class="flex-1 py-3 text-center bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+          Cancel
+        </a>
+        <button type="submit"
+                class="flex-1 py-3 text-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+          Save Changes
+        </button>
+      </div>
+    </form>
+
+    <!-- Change Password -->
+    <div class="mt-6 text-center">
+      <a href="{% url 'change_password' %}" 
+         class="text-yellow-600 hover:text-yellow-800 font-medium flex justify-center items-center gap-2">
+        <i class="fas fa-key"></i> Change Password
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
