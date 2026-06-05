@@ -1,0 +1,39 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block title %}Tax Rate Management{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">
+      <i class="fas fa-percentage"></i> Tax Rate Management
+    </h1>
+    {% if tax_rate and tax_rate.id %}
+    <a href="{% url 'admin_tax_rate_update' tax_rate.id %}" 
+       class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+      <i class="fas fa-edit"></i> Edit Tax Rate
+    </a>
+    {% endif %}
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 text-left">Tax Percentage (%)</th>
+          <th class="px-4 py-3 text-left">Last Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium">{{ tax_rate.tax }}</td>
+          <td class="px-4 py-3">{{ tax_rate.updated_at|default:"-"|date:"Y-m-d H:i" }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

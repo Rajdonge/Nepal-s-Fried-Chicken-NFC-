@@ -1,0 +1,308 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}Order Confirmation - {{ order.order_number }} {% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
+  
+  <!-- Breadcrumb -->
+  <nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+      <li class="inline-flex items-center">
+        <a href="{% url 'home' %}" class="inline-flex items-center text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--primary)]">
+          <i class="fas fa-home mr-2"></i>
+          Home
+        </a>
+      </li>
+      <li>
+        <div class="flex items-center">
+          <i class="fas fa-chevron-right text-[var(--text-secondary)] mx-1"></i>
+          <a href="{% url 'carts' %}" class="ml-1 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--primary)] md:ml-2">Cart</a>
+        </div>
+      </li>
+      <li>
+        <div class="flex items-center">
+          <i class="fas fa-chevron-right text-[var(--text-secondary)] mx-1"></i>
+          <a href="{% url 'checkout_page' %}" class="ml-1 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--primary)] md:ml-2">Checkout</a>
+        </div>
+      </li>
+      <li aria-current="page">
+        <div class="flex items-center">
+          <i class="fas fa-chevron-right text-[var(--text-secondary)] mx-1"></i>
+          <span class="ml-1 text-sm font-medium text-[var(--text-secondary)] md:ml-2">Order Confirmation</span>
+        </div>
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Success Header -->
+  <div class="text-center mb-8">
+    <div class="inline-flex items-center justify-center w-20 h-20 bg-[var(--success)]/10 rounded-full border-4 border-[var(--success)] mb-4">
+      <i class="fas fa-check text-3xl text-[var(--success)]"></i>
+    </div>
+    <h1 class="text-3xl font-bold text-[var(--text-primary)] mb-2">Order Confirmation</h1>
+    {% if orders|length > 1 %}
+    <p class="text-[var(--text-secondary)]">Orders: 
+      {% for o in orders %}
+        #{{ o.order_number }}{% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+    {% else %}
+    <p class="text-[var(--text-secondary)]">Order #{{ order.order_number }}</p>
+    {% endif %}
+    </div>
+
+<!-- Multiple Shipments Alert -->
+{% if invoices|length > 1 %}
+<div class="mb-6 p-4 bg-blue-100 border-blue-500 rounded-lg">
+  <div class="flex items-start gap-3">
+    <i class="fas fa-info-circle text-blue-600 text-xl mt-0.5"></i>
+    <div>
+      <h3 class="font-semibold text-blue-800 mb-1">Multiple Shipments</h3>
+      <p class="text-sm text-blue-700">
+        Your order has been split into <strong>{{ invoices|length }} separate shipments</strong> from different restaurants. 
+        Each restaurant will process and ship their items independently.
+      </p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Orders and Details Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  
+  <!-- Order Details -->
+  <div class="bg-[var(--bg-light)] border rounded-lg p-6 shadow-[var(--shadow-sm)]">
+    <h2 class="text-xl font-bold text-[var(--text-primary)] mb-4">Order Details</h2>
+    
+    <!-- Payment Info -->
+    <div class="space-y-3 mb-6">
+      <div class="flex justify-between">
+        <span class="text-[var(--text-secondary)]">Payment Method:</span>
+        <span class="font-semibold text-[var(--primary)]">{{ order.get_payment_method_display }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-[var(--text-secondary)]">Payment Status:</span>
+        <span class="font-semibold {% if order.payment_status == 'paid' %}text-[var(--success)]{% else %}text-yellow-600{% endif %}">{{ order.get_payment_status_display }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-[var(--text-secondary)]">Order Status:</span>
+        <span class="font-semibold text-[var(--success)]">{{ order.get_status_display }}</span>
+      </div>
+      {% if order.coupon %}
+      <div class="flex justify-between">
+        <span class="text-[var(--text-secondary)]">Coupon:</span>
+        <span class="font-semibold text-[var(--primary)]">{{ order.coupon.code }}</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Billing Address -->
+    <div class="space-y-2 mb-6">
+      <h3 class="text-lg font-semibold text-[var(--text-primary)]">Billing Address</h3>
+      <p class="text-[var(--text-primary)]">{{ order.full_name }}</p>
+      <p class="text-[var(--text-secondary)]">{{ order.address }}</p>
+      <p class="text-[var(--text-secondary)]">{{ order.city }}, {{ order.get_province_display }}, {{ order.postal_code }}</p>
+      <p class="text-[var(--text-secondary)]">{{ order.phone }} | {{ order.email }}</p>
+    </div>
+
+    <!-- Order Notes -->
+    {% if order.notes %}
+    <div class="space-y-2">
+      <h3 class="text-lg font-semibold text-[var(--text-primary)]">Order Notes</h3>
+      <p class="text-[var(--text-secondary)]">{{ order.notes }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+<!-- Order Summary - Totals for ALL Orders -->
+<div class="bg-[var(--bg-light)] border rounded-lg p-6 shadow-[var(--shadow-sm)]">
+  <h2 class="text-xl font-bold text-[var(--text-primary)] mb-4">Order Summary</h2>
+  
+  <div class="space-y-3 mb-6">
+    <!-- Subtotal (sum of all orders) -->
+    <div class="flex justify-between">
+      <span class="text-[var(--text-secondary)]">Subtotal</span>
+      <span class="font-semibold text-[var(--text-primary)]">Rs {{ total_subtotal|floatformat:0 }}</span>
+    </div>
+    
+    <!-- Shipping Breakdown Per Restaurant -->
+    {% for restaurant_name, shipping_fee in shipping_breakdown.items %}
+    <div class="flex justify-between text-sm">
+      <span class="text-[var(--text-secondary)]">Shipping ({{ restaurant_name }})</span>
+      <span class="font-semibold text-[var(--text-primary)]">Rs {{ shipping_fee|floatformat:0 }}</span>
+    </div>
+    {% endfor %}
+
+    <!-- Total Shipping (sum from all orders) -->
+    {% if shipping_breakdown|length > 1 %}
+    <div class="flex justify-between pt-2 border-t border-[var(--text-secondary)] font-semibold">
+      <span>Total Shipping</span>
+      <span>Rs {{ total_shipping|floatformat:0 }}</span>
+    </div>
+    {% endif %}
+    
+    <!-- Tax (sum from all orders) -->
+    <div class="flex justify-between">
+      <span class="text-[var(--text-secondary)]">Tax</span>
+      <span class="font-semibold text-[var(--text-primary)]">Rs {{ total_tax|floatformat:0 }}</span>
+    </div>
+    
+    <!-- Discount (sum from all orders) -->
+    {% if total_discount > 0 %}
+    <div class="flex justify-between text-green-600">
+      <span>Discount</span>
+      <span class="font-semibold">-Rs {{ total_discount|floatformat:0 }}</span>
+    </div>
+    {% endif %}
+    
+    <hr class="my-3 border-[var(--text-secondary)]">
+    
+    <!-- Grand Total (sum from all orders) -->
+    <div class="flex justify-between text-lg font-bold">
+      <span class="text-[var(--text-primary)]">Grand Total</span>
+      <span class="text-[var(--success)]">Rs {{ grand_total|floatformat:0 }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Order Items Grouped By Restaurant -->
+<div class="bg-[var(--bg-light)] border rounded-lg p-6 shadow-[var(--shadow-sm)]">
+  <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-6">Order Items</h3>
+  
+  <div class="space-y-6">
+    {% for order_obj in orders %}
+    <!-- Restaurant Section -->
+    <div class="border rounded-lg p-5 bg-white">
+      <!-- Restaurant Header -->
+      <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+        <div>
+          <h4 class="font-semibold text-[var(--text-primary)] text-lg">
+            <i class="fas fa-store text-[var(--primary)] mr-2"></i>
+            {{ order_obj.items.first.menu_item.restaurant.restaurant_name }}
+          </h4>
+          <p class="text-sm text-[var(--text-secondary)] mt-1">Order #{{ order_obj.order_number }}</p>
+        </div>
+        <div class="text-right">
+          <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {% if order_obj.status == 'pending' %}bg-yellow-100 text-yellow-800{% elif order_obj.status == 'processing' %}bg-blue-100 text-blue-800{% elif order_obj.status == 'shipped' %}bg-purple-100 text-purple-800{% else %}bg-[var(--success)]/10 text-[var(--success)]{% endif %}">
+            {{ order_obj.get_status_display }}
+          </span>
+          <p class="text-xs text-[var(--text-secondary)] mt-2">
+            <i class="fas fa-truck text-[var(--primary)] mr-1"></i>
+            Est. {{ order_obj.estimated_delivery_date|date:"M d, Y" }}
+          </p>
+        </div>
+      </div>
+      
+      <!-- Items for this Restaurant -->
+      <div class="space-y-3 mb-5">
+        {% for item in order_obj.items.all %}
+        <div class="flex items-start gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+          <!-- Menu Item Image -->
+          <img src="{{ item.menu_item.image.url }}" 
+               alt="{{ item.menu_item.name }}" 
+               class="w-20 h-20 object-cover rounded-lg flex-shrink-0 border border-gray-200">
+          
+          <!-- Menu Item Details -->
+          <div class="flex-1 min-w-0">
+            <h5 class="font-semibold text-[var(--text-primary)] mb-1">{{ item.menu_item.name }}</h5>
+            
+            <!-- Variants -->
+            {% if item.variant.all %}
+            <div class="space-y-1 mb-2">
+              {% for variant in item.variant.all %}
+              <p class="text-sm text-[var(--text-secondary)]">
+                <span class="font-medium text-gray-700">{{ variant.get_variant_type_display }}:</span> 
+                {{ variant.name }}
+                {% if variant.price_adjustment != 0 %}
+                <span class="text-orange-600 font-semibold text-xs ml-1">
+                  ({% if variant.price_adjustment > 0 %}+{% endif %}Rs {{ variant.price_adjustment|floatformat:0 }})
+                </span>
+                {% endif %}
+              </p>
+              {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Price Info -->
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-[var(--success)]">
+                  Rs {{ item.price|floatformat:0 }} <span class="text-gray-500 font-normal">x {{ item.quantity }}</span>
+                </p>
+                <p class="text-xs text-[var(--text-secondary)]">
+                  Subtotal: <span class="font-semibold text-[var(--text-primary)]">Rs {{ item.get_total|floatformat:0 }}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      
+      <!-- Restaurant Totals -->
+      <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 space-y-2 text-sm border border-gray-200">
+        <div class="flex justify-between">
+          <span class="text-[var(--text-secondary)]">Subtotal</span>
+          <span class="font-semibold text-[var(--text-primary)]">Rs {{ order_obj.subtotal|floatformat:0 }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-[var(--text-secondary)]">Shipping</span>
+          <span class="font-semibold text-[var(--success)]">Rs {{ order_obj.shipping_cost|floatformat:0 }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-[var(--text-secondary)]">Tax ({{ order_obj.tax_percentage }}%)</span>
+          <span class="font-semibold text-[var(--text-primary)]">Rs {{ order_obj.tax_amount|floatformat:0 }}</span>
+        </div>
+        {% if order_obj.discount > 0 %}
+        <div class="flex justify-between text-green-600">
+          <span>Discount</span>
+          <span class="font-semibold">-Rs {{ order_obj.discount|floatformat:0 }}</span>
+        </div>
+        {% endif %}
+        <hr class="my-2 border-gray-300">
+        <div class="flex justify-between text-base font-bold">
+          <span class="text-[var(--text-primary)]">Order Total</span>
+          <span class="text-[var(--success)]">Rs {{ order_obj.total|floatformat:0 }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+</div>
+
+  <!-- Next Steps -->
+  <div class="mt-8 text-center">
+    <p class="text-[var(--text-secondary)] mb-4">You will receive an email confirmation shortly. We will notify you when your order ships.</p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="{% url 'customer_order_detail' order.order_number %}" class="inline-block bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-[var(--text-light)] px-8 py-3 rounded-lg font-semibold transition-colors btn btn-primary">
+        My Order Details
+      </a>
+      <button onclick="window.print()" class="bg-gray-100 hover:bg-gray-200 text-[var(--text-primary)] px-8 py-3 rounded-lg font-semibold transition-colors">
+        <i class="fas fa-print mr-2"></i>Print Order
+      </button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+  // Auto-print option
+  if (window.matchMedia('print').matches) {
+    window.print();
+  }
+  
+  // Email sharing
+  $('.share-email').on('click', function() {
+    const orderNumber = '{{ order.order_number }}';
+    const emailSubject = `Order Confirmation #${orderNumber} - Fresh Mart Store`;
+    const emailBody = `Thank you for your order! Order #${orderNumber} has been confirmed.`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+  });
+});
+</script>
+{% endblock %}

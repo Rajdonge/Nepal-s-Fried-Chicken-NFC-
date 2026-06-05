@@ -1,0 +1,422 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}Shopping Cart{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
+  
+  <h1 class="text-2xl lg:text-3xl font-bold mb-6 text-[var(--text-primary)]">Shopping Cart</h1>
+
+  <!-- Guest Alert (if not logged in) -->
+  {% if not request.user.is_authenticated and cart_items %}
+  <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+    <div class="flex items-center gap-2 text-sm text-blue-800">
+      <i class="fas fa-info-circle"></i>
+      <span>You're checking out as a guest. <a href="{% url 'login_page' %}" class="font-semibold underline hover:text-blue-900">Log in</a> to track orders and earn rewards.</span>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if cart_items %}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+
+    <!-- Cart Items Section -->
+    <div class="lg:col-span-2">
+      <div class="bg-[var(--bg-light)] border rounded-lg overflow-hidden shadow-[var(--shadow-sm)]">
+        
+        <!-- Mobile Card View - GROUPED BY RESTAURANT -->
+        <div class="block lg:hidden divide-y">
+          {% regroup cart_items by menu_item.restaurant as restaurant_groups %}
+          
+          {% for restaurant, restaurant_items in restaurant_groups %}
+          <div class="border-b border-orange-200 py-3">
+            <!-- Restaurant Header -->
+            <div class="flex items-center gap-2 mb-3 pb-2 border-b border-orange-200 px-4">
+              <i class="fas fa-store text-orange-600 text-sm"></i>
+              <h4 class="font-semibold text-sm text-[var(--text-primary)]">{{ restaurant.restaurant_name }}</h4>
+            </div>
+            
+            <!-- Items in this restaurant -->
+            {% for item in restaurant_items %}
+            <div class="cart-item p-4 border-b border-gray-100" data-cart-item-id="{{ item.id }}">
+              <div class="flex gap-3 mb-3">
+                <img src="{{ item.menu_item.image.url|default:'https://via.placeholder.com/200' }}" 
+                    alt="{{ item.menu_item.name }}" 
+                    class="w-20 h-20 object-cover rounded flex-shrink-0">
+                <div class="flex-1 min-w-0">
+                  <p class="text-[var(--text-primary)] mb-1 font-medium">{{ item.menu_item.name }}</p>
+                  
+                  <!-- Multiple Variants Display -->
+                  {% if item.options_list %}
+                  <div class="space-y-1 mb-2">
+                    {% for variant in item.options_list %}
+                    <p class="text-xs text-[var(--text-secondary)]">
+                      <span class="font-medium">{{ variant.get_option_type_display|default:"Option" }}:</span> 
+                      {{ variant.name }}
+                      {% if variant.price_adjustment != 0 %}
+                      <span class="text-orange-600 font-semibold">
+                        ({% if variant.price_adjustment > 0 %}+{% endif %}Rs {{ variant.price_adjustment }})
+                      </span>
+                      {% endif %}
+                    </p>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                  
+                  <p class="item-price font-bold text-[var(--success)] text-lg">Rs {{ item.unit_price|floatformat:0 }}</p>
+                </div>
+                <button class="removeItem text-red-500 hover:text-red-700 h-8 w-8 flex items-center justify-center cursor-pointer" 
+                        data-cart-item-id="{{ item.id }}">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <button class="decreaseQty w-9 h-9 border border-[var(--text-secondary)] rounded hover:bg-gray-100 flex items-center justify-center cursor-pointer" 
+                          data-cart-item-id="{{ item.id }}">-</button>
+                  <input type="number" value="{{ item.quantity }}" min="1" 
+                        class="qtyInput w-16 text-center border border-[var(--text-secondary)] rounded py-2 text-sm focus:ring-2 focus:ring-[var(--primary)]"
+                        data-cart-item-id="{{ item.id }}">
+                  <button class="increaseQty w-9 h-9 border border-[var(--text-secondary)] rounded hover:bg-gray-100 flex items-center justify-center cursor-pointer"
+                          data-cart-item-id="{{ item.id }}">+</button>
+                </div>
+                <div class="text-right">
+                  <p class="text-xs text-[var(--text-secondary)]">Subtotal</p>
+                  <p class="item-subtotal font-bold text-[var(--text-primary)] text-lg">Rs {{ item.line_total|floatformat:0 }}</p>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Desktop Table View - GROUPED BY RESTAURANT -->
+        <div class="hidden lg:block space-y-6">
+          {% regroup cart_items by menu_item.restaurant as restaurant_groups %}
+          
+          {% for restaurant, restaurant_items in restaurant_groups %}
+          <div class="border border-orange-200 rounded-lg bg-orange-50 overflow-hidden">
+            <!-- Restaurant Header -->
+            <div class="bg-orange-100 p-4 flex items-center gap-2 border-b border-orange-200">
+              <i class="fas fa-store text-orange-600"></i>
+              <h4 class="font-semibold text-[var(--text-primary)]">{{ restaurant.restaurant_name }}</h4>
+              
+              {% if restaurant_groups|length > 1 %}
+              <span class="ml-auto text-sm text-orange-700 bg-white px-3 py-1 rounded">Will prepare separately</span>
+              {% endif %}
+            </div>
+            
+            <!-- Vendor Items Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                  <tr>
+                    <th class="text-left py-3 px-6 font-semibold text-[var(--text-primary)]">Product</th>
+                    <th class="text-center py-3 px-6 font-semibold text-[var(--text-primary)]">Price</th>
+                    <th class="text-center py-3 px-6 font-semibold text-[var(--text-primary)]">Quantity</th>
+                    <th class="text-center py-3 px-6 font-semibold text-[var(--text-primary)]">Subtotal</th>
+                    <th class="text-center py-3 px-6 font-semibold text-[var(--text-primary)]">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y bg-white">
+                  {% for item in restaurant_items %}
+                  <tr class="cart-item" data-cart-item-id="{{ item.id }}">
+                    <td class="py-4 px-6">
+                      <div class="flex items-center gap-4">
+                        <img src="{{ item.menu_item.image.url|default:'https://via.placeholder.com/200' }}" 
+                            alt="{{ item.menu_item.name }}" 
+                            class="w-16 h-16 object-cover rounded">
+                        <div>
+                          <p class="text-[var(--text-primary)] font-medium mb-1">{{ item.menu_item.name }}</p>
+                          
+                          <!-- Multiple Variants Display -->
+                          {% if item.options_list %}
+                          <div class="space-y-1">
+                            {% for variant in item.options_list %}
+                            <p class="text-sm text-[var(--text-secondary)]">
+                              <span class="font-medium">{{ variant.get_option_type_display|default:"Option" }}:</span> 
+                              {{ variant.name }}
+                              {% if variant.price_adjustment != 0 %}
+                              <span class="text-orange-600 font-semibold text-xs">
+                                ({% if variant.price_adjustment > 0 %}+{% endif %}Rs {{ variant.price_adjustment }})
+                              </span>
+                              {% endif %}
+                            </p>
+                            {% endfor %}
+                          </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-center py-4 px-6">
+                      <span class="font-semibold text-[var(--success)]">Rs {{ item.unit_price|floatformat:0 }}</span>
+                    </td>
+                    <td class="text-center py-4 px-6">
+                      <div class="flex items-center justify-center gap-2">
+                        <button class="decreaseQty w-8 h-8 border border-[var(--text-secondary)] rounded hover:bg-gray-100 flex items-center justify-center cursor-pointer"
+                                data-cart-item-id="{{ item.id }}">-</button>
+                        <input type="number" value="{{ item.quantity }}" min="1" 
+                              class="qtyInput w-16 text-center border border-[var(--text-secondary)] rounded py-1 text-sm focus:ring-2 focus:ring-[var(--primary)]"
+                              data-cart-item-id="{{ item.id }}">
+                        <button class="increaseQty w-8 h-8 border border-[var(--text-secondary)] rounded hover:bg-gray-100 flex items-center justify-center cursor-pointer"
+                                data-cart-item-id="{{ item.id }}">+</button>
+                      </div>
+                    </td>
+                    <td class="text-center py-4 px-6">
+                      <span class="font-bold text-[var(--text-primary)] item-subtotal">Rs {{ item.line_total|floatformat:0 }}</span>
+                    </td>
+                    <td class="text-center py-4 px-6">
+                      <button class="removeItem text-red-500 hover:text-red-700 p-2 cursor-pointer" 
+                              data-cart-item-id="{{ item.id }}">
+                        <i class="fa fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Order Summary Section -->
+    <div class="lg:col-span-1">
+      <div class="bg-[var(--bg-light)] border rounded-lg p-6 shadow-[var(--shadow-sm)] sticky top-4">
+        <h2 class="text-xl font-bold text-[var(--text-primary)] mb-4">Order Summary</h2>
+        
+        <!-- Multiple Vendors Alert -->
+        <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p class="text-xs text-blue-800">
+            <i class="fas fa-info-circle mr-1"></i>
+            Items from different restaurants will be prepared and delivered separately
+          </p>
+          <p class="text-xs text-blue-800 pt-2">
+            <i class="fas fa-info-circle mr-1"></i>
+            Delivery charges may vary based on restaurant locations and delivery zones.
+          </p>
+        </div>
+        
+        <div class="space-y-3 mb-6">
+          <div class="flex justify-between">
+            <span class="text-[var(--text-secondary)]">Items ({{ total_items }})</span>
+            <span class="font-semibold text-[var(--text-primary)]">Rs {{ sub_total_price|floatformat:0 }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--text-secondary)]">Shipping</span>
+            <span class="font-semibold text-[var(--success)]">
+              {% if delivery_fee == 0 %}
+                Free
+              {% else %}
+                Rs {{ delivery_fee|floatformat:0 }}
+              {% endif %}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--text-secondary)]">Tax ({{ tax_rate }}%)</span>
+            <span class="font-semibold text-[var(--text-primary)]">Rs {{ tax_amount|floatformat:0 }}</span>
+          </div>
+          <hr class="my-3 border-[var(--text-secondary)]">
+          <div class="flex justify-between text-lg font-bold">
+            <span class="text-[var(--text-primary)]">Total</span>
+            <span class="text-[var(--success)] total-price">Rs {{ total_price|floatformat:0 }}</span>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <a href="{% url 'checkout_page' %}" class="block w-full text-center bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-[var(--text-light)] py-3 px-4 rounded-lg font-semibold transition-colors btn btn-primary">
+            Proceed to Checkout
+          </a>
+          <a href="{% url 'all_collections' %}" class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-[var(--text-primary)] py-3 px-4 rounded-lg font-semibold transition-colors">
+            Continue Shopping
+          </a>
+        </div>
+
+        <!-- Security Badge -->
+        <div class="mt-6 pt-4 border-t border-[var(--text-secondary)] text-center">
+          <div class="flex items-center justify-center gap-2 text-sm text-[var(--text-secondary)]">
+            <i class="fas fa-shield-alt text-[var(--success)]"></i>
+            <span>Secure Checkout</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  {% else %}
+  <!-- Empty Cart -->
+  <div class="text-center py-12">
+    <div class="max-w-md mx-auto">
+      <i class="fas fa-shopping-cart text-6xl text-gray-300 mb-6"></i>
+      <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">Your Cart is Empty</h2>
+      <p class="text-[var(--text-secondary)] mb-6">Looks like you haven't added any items to your cart yet.</p>
+      <a href="{% url 'all_collections' %}" class="inline-block bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-[var(--text-light)] px-8 py-3 rounded-lg font-semibold transition-colors btn btn-primary">
+        Start Shopping
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+  // Update cart item quantity
+  $('.qtyInput').on('change', function() {
+    const cartItemId = $(this).data('cart-item-id');
+    const quantity = parseInt($(this).val());
+    
+    if (quantity < 1) {
+      removeCartItem(cartItemId);
+      return;
+    }
+    
+    updateCartItem(cartItemId, quantity);
+  });
+  
+  // Increase quantity
+  $('.increaseQty').on('click', function() {
+    const cartItemId = $(this).data('cart-item-id');
+    const input = $(`.qtyInput[data-cart-item-id="${cartItemId}"]`);
+    const currentQty = parseInt(input.val());
+    const maxQty = parseInt(input.attr('max'));
+    
+    if (currentQty < maxQty) {
+      input.val(currentQty + 1);
+      updateCartItem(cartItemId, currentQty + 1);
+    } else {
+      toastr.warning(`Maximum available quantity is ${maxQty}`);
+    }
+  });
+  
+  // Decrease quantity
+  $('.decreaseQty').on('click', function() {
+    const cartItemId = $(this).data('cart-item-id');
+    const input = $(`.qtyInput[data-cart-item-id="${cartItemId}"]`);
+    const currentQty = parseInt(input.val());
+    
+    if (currentQty > 1) {
+      input.val(currentQty - 1);
+      updateCartItem(cartItemId, currentQty - 1);
+    } else {
+      removeCartItem(cartItemId);
+    }
+  });
+  
+  // Remove item
+  $('.removeItem').on('click', function() {
+    const cartItemId = $(this).data('cart-item-id');
+    
+    if (confirm('Are you sure you want to remove this item from cart?')) {
+      removeCartItem(cartItemId);
+    }
+  });
+  
+  // Update cart item function
+  function updateCartItem(cartItemId, quantity) {
+    $.ajax({
+      url: '{% url "update_cart_item" %}',
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val() || $('meta[name=csrf-token]').attr('content')
+      },
+      contentType: 'application/json',
+      data: JSON.stringify({
+        cart_item_id: cartItemId,
+        quantity: quantity
+      }),
+      success: function(response) {
+        if (response.success) {
+          // Update item subtotal
+          $(`.cart-item[data-cart-item-id="${cartItemId}"] .item-subtotal`).text('Rs ' + Math.round(response.item_total));
+          
+          // Update summary totals
+          updateSummaryTotals(response);
+          
+          // Update cart count in header
+          $('#desktopCartBadge, #mobileCartBadge').text(response.total_items);
+          
+          toastr.success(response.message);
+        } else {
+          toastr.error(response.message);
+          // Reset quantity to previous value
+          location.reload();
+        }
+      },
+      error: function(xhr) {
+        const response = xhr.responseJSON;
+        toastr.error(response?.message || 'An error occurred while updating cart');
+        location.reload();
+      }
+    });
+  }
+  
+  // Remove cart item function
+  function removeCartItem(cartItemId) {
+    $.ajax({
+      url: '{% url "remove_from_cart" %}',
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val() || $('meta[name=csrf-token]').attr('content')
+      },
+      contentType: 'application/json',
+      data: JSON.stringify({
+        cart_item_id: cartItemId
+      }),
+      success: function(response) {
+        if (response.success) {
+          // Remove item from DOM with animation
+          $(`.cart-item[data-cart-item-id="${cartItemId}"]`).fadeOut(300, function() {
+            $(this).remove();
+            
+            // Check if cart is empty
+            if ($('.cart-item').length === 0) {
+              location.reload(); // Reload to show empty cart message
+            } else {
+              // Update summary totals
+              updateSummaryTotals(response);
+            }
+          });
+          
+          // Update cart count in header
+          $('#desktopCartBadge, #mobileCartBadge').text(response.total_items);
+          
+          toastr.success(response.message);
+        } else {
+          toastr.error(response.message);
+        }
+      },
+      error: function(xhr) {
+        const response = xhr.responseJSON;
+        toastr.error(response?.message || 'An error occurred while removing item');
+      }
+    });
+  }
+  
+  // Update summary totals
+  function updateSummaryTotals(response) {
+    if (response.sub_total !== undefined) {
+      $('.space-y-3 .flex:nth-child(1) .font-semibold').text('Rs ' + Math.round(response.sub_total));
+    }
+    if (response.shipping_cost !== undefined) {
+      const shippingText = response.shipping_cost === 0 ? 'Free' : 'Rs ' + Math.round(response.shipping_cost);
+      $('.space-y-3 .flex:nth-child(2) .font-semibold').text(shippingText);
+    }
+    if (response.tax_amount !== undefined) {
+      $('.space-y-3 .flex:nth-child(3) .font-semibold').text('Rs ' + Math.round(response.tax_amount));
+    }
+    if (response.total_price !== undefined) {
+      $('.total-price').text('Rs ' + Math.round(response.total_price));
+    }
+    if (response.total_items !== undefined) {
+      $('.space-y-3 .flex:nth-child(1) .text-\\[var\\(--text-secondary\\)\\]').text('Items (' + response.total_items + ')');
+    }
+  }
+});
+</script>
+{% endblock %}

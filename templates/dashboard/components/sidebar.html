@@ -1,0 +1,816 @@
+{% load static %}
+
+<aside id="sidebar"
+       class="bg-white border-r mr-18 border-gray-200 w-[250px] fixed inset-y-0 left-0 transform transition-transform duration-300 md:translate-x-0 -translate-x-full z-30 flex flex-col pb-6"
+       aria-label="Main navigation">
+
+  <!-- Logo -->
+  <div class="px-0 py-0 h-16 flex items-center border-b border-gray-200">
+    <a href="{% if request.user.role.role == 'admin' %}{% url 'admin_dashboard' %}{% elif request.user.role.role == 'staff' %}{% url 'staff_dashboard' %}{% elif request.user.role.role == 'restaurant' %}{% url 'restaurant_dashboard' %}{% else %}{% url 'home' %}{% endif %}"
+       class="flex items-center justify-center w-full h-full" aria-label="Hello Bazar Dashboard">
+      {% if organization.logo %}<img src="{{ organization.logo.url }}" alt="Hello Bazar Logo" class="h-full w-full object-contain">{% endif %}
+    </a>
+  </div>
+
+  {% if request.user.role.role == 'admin' %}
+  <!-- ====================== ADMIN ====================== -->
+  <nav class="flex-grow overflow-y-auto py-4 text-md" aria-label="Sidebar navigation">
+    <ul class="space-y-1 px-2">
+
+      <!-- Dashboard -->
+      <li>
+        <a href="{% url 'admin_dashboard' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/' or request.path == '/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-tachometer-alt w-6 text-center mr-3"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <!-- User Management -->
+      <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-users-cog w-6 text-center text-gray-500 mr-3"></i>
+          <span>User</span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/users/' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/users/' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'admin_users_list' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/users/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-users w-5 text-center mr-3"></i>
+              All Users
+            </a>
+          </li>
+        </ul>
+      </li>
+
+      <!-- Restaurant Branch/Vendor Management -->
+      <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-store-alt w-6 text-center text-gray-500 mr-3"></i>
+          <span>Restaurant</span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200{% if '/admin-dashboard/restaurants/' in request.path %}xt-xs ml-auto transition-transform duration-200 rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/restaurants/' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'admin_restaurant_list' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/restaurants/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-cog w-5 text-center mr-3"></i>
+              My Restaurant
+            </a>
+          </li>
+          {% comment %} <li>
+            <a href="{% url 'admin_restaurant_pending_kyc' %}"
+              class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if '/admin-dashboard/restaurants/pending-kyc/' in request.path %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-hourglass-half w-5 text-center mr-3"></i>
+              Pending Restaurants
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin_restaurant_verified_kyc' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if '/admin-dashboard/restaurants/verified-kyc/' in request.path %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-check-circle w-5 text-center mr-3"></i>
+              Verified Restaurants
+            </a>
+          </li> {% endcomment %}
+        </ul>
+      </li>
+
+      <!-- Menu Section Management -->
+      <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-list w-6 text-center text-gray-500 mr-3"></i>
+          <span>Menu Sections</span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/menu-sections/' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/menu-sections/' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'admin_menu_sections_list' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/menu-sections/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-list w-5 text-center mr-3"></i>
+              All Sections
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin_menu_section_add' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/menu-sections/add/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-plus w-5 text-center mr-3"></i>
+              Add Section
+            </a>
+          </li>
+        </ul>
+      </li>
+
+      <!-- Menu Item Management -->
+      <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-box w-6 text-center text-gray-500 mr-3"></i>
+          <span>Menu Item</span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/menuItems/' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/menuItems/' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'admin_menuItems_list' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/menuItems/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-boxes w-5 text-center mr-3"></i>
+              All Menu Items
+            </a>
+          </li>
+                    <li>
+            <a href="{% url 'admin_menuItem_add' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/menuItems/add/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-plus w-5 text-center mr-3"></i>
+              Add Menu Item
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin_menuItems_featured' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/menuItems/featured/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-star w-5 text-center mr-3"></i>
+              Featured Menu Items
+            </a>
+          </li>
+
+        </ul>
+      </li>
+
+
+      <!-- Order Management -->
+      <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-shopping-cart w-6 text-center text-gray-500 mr-3"></i>
+          <span>Order</span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/orders/' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/orders/' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'admin_orders_list' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/orders/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-list w-5 text-center mr-3"></i>
+              All Orders
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin_orders_pending' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if '/admin-dashboard/orders/pending/' in request.path %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-hourglass-half w-5 text-center mr-3"></i>
+              Pending Orders
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin_orders_delivered' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/orders/delivered/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-check-circle w-5 text-center mr-3"></i>
+              Delivered Orders
+            </a>
+          </li>
+        </ul>
+      </li>
+
+      <!-- Payout Requests -->
+      {% comment %} <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-file-invoice-dollar w-6 text-center text-gray-500 mr-3"></i>
+          <span class="mr-3">Payout</span>
+            <span class="bg-blue-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                {{ total_pending_payouts }}
+              </span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/payout-requests/' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/payout-requests/' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'admin_payout_requests_list' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/payout-requests/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-list w-5 text-center mr-3"></i>
+              All Requests
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin_payout_requests_pending' %}"
+               class="sublink flex items-center justify-between px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/payout-requests/pending/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <div class="flex items-center">
+                <i class="fas fa-hourglass-half w-5 text-center mr-3"></i>
+                Pending
+              </div>
+              <span class="bg-blue-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                {{ total_pending_payouts }}
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin_payout_requests_rejected' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/payout-requests/rejected/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-times-circle w-5 text-center mr-3"></i>
+              Rejected
+            </a>
+          </li>
+        </ul>
+      </li> {% endcomment %}
+
+      <!-- Payments -->
+      {% comment %} <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-wallet w-6 text-center text-gray-500 mr-3"></i>
+          <span>Payments</span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/payments/' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/payments/' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'admin_payments_overview' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/payments/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-wallet w-5 text-center mr-3"></i>
+             Payments & Revenue
+            </a>
+          </li>
+        </ul>
+      </li> {% endcomment %}
+
+      <!-- Content Management -->
+      {% comment %} <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-images w-6 text-center text-gray-500 mr-3"></i>
+          <span>Content</span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/sliders/' in request.path or '/admin-dashboard/banners/' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/sliders/' not in request.path and '/admin-dashboard/banners/' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'admin_sliders_list' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/sliders/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-sliders-h w-5 text-center mr-3"></i>
+              Sliders
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin_banners_list' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/banners/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-image w-5 text-center mr-3"></i>
+              Banners
+            </a>
+          </li>
+        </ul>
+      </li> {% endcomment %}
+
+      <!-- Contact Management -->
+      {% comment %} <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-envelope w-6 text-center text-gray-500 mr-3"></i>
+          <span>Contact</span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/contacts/' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/contacts/' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'admin_contacts_list' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/contacts/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-inbox w-5 text-center mr-3"></i>
+              All Contacts
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin_contact_unread' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/contacts/unread/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-envelope-open w-5 text-center mr-3"></i>
+              Unread Contacts
+            </a>
+          </li>
+        </ul>
+      </li> {% endcomment %}
+
+      <!-- Review Management -->
+      <li>
+        <a href="{% url 'admin_reviews_list' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/reviews/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-star w-6 text-center text-gray-500 mr-3"></i>
+          <span>Review</span>
+        </a>
+      </li>
+
+      <!-- Ad Banner Management -->
+      <li>
+        <a href="{% url 'admin_ad_banner_list' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/ad-banners/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-ad w-6 text-center text-gray-500 mr-3"></i>
+          <span>Ad Banners</span>
+        </a>
+      </li>
+
+      <!-- Tax Rate -->
+{% comment %} <li>
+  <a href="{% url 'admin_tax_rate' %}"
+     class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+            {% if request.path == '/admin-dashboard/tax-rate/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+    <i class="fas fa-percentage w-6 text-center text-gray-500 mr-3"></i>
+    <span>Tax Rate</span>
+  </a>
+</li> {% endcomment %}
+
+
+
+
+      <!-- Newsletter -->
+      {% comment %} <li>
+        <a href="{% url 'admin_newsletter_list' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/newsletter/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-newspaper w-6 text-center text-gray-500 mr-3"></i>
+          <span>Newsletter</span>
+        </a>
+      </li> {% endcomment %}
+
+      <!-- Coupons -->
+      {% comment %} <li>
+        <a href="{% url 'admin_coupons_list' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/coupons/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-ticket-alt w-6 text-center text-gray-500 mr-3"></i>
+          <span>Coupons</span>
+        </a>
+      </li> {% endcomment %}
+
+      <!-- Organization -->
+      <li>
+        <a href="{% url 'admin_organization_view' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/organization/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-building w-6 text-center text-gray-500 mr-3"></i>
+          <span>Organization</span>
+        </a>
+      </li>
+            <!-- Staffs -->
+      <li>
+        <a href="{% url 'admin_staff_list' %}"
+          class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/users/staff/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-user-shield w-6 text-center text-gray-500 mr-3"></i>
+          <span>Staffs</span>
+        </a>
+      </li>
+
+      <!-- Delivery Management -->
+      <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-truck w-6 text-center text-gray-500 mr-3"></i>
+          <span>Delivery</span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/delivery' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/delivery' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'admin_delivery_persons_list' %}"
+              class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                      {% if 'delivery-persons' in request.path %}text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-users w-5 text-center text-gray-500 mr-3"></i>
+              <span>Delivery Persons</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin_delivery_assignments_list' %}"
+              class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                      {% if 'delivery-assignments' in request.path %}text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-tasks w-5 text-center text-gray-500 mr-3"></i>
+              <span>Assignments</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+
+      <!-- Profile -->
+      <li>
+        <a href="{% url 'admin_profile' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/profile/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-user w-6 text-center text-gray-500 mr-3"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+
+    </ul>
+  </nav>
+
+    {% elif request.user.role.role == 'staff' %}
+  <!-- ====================== STAFF ====================== -->
+  <nav class="flex-grow overflow-y-auto py-4 text-md" aria-label="Sidebar navigation">
+    <ul class="space-y-1 px-2">
+
+      <!-- Dashboard -->
+      <li>
+        <a href="{% url 'staff_dashboard' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/staff-dashboard/' or request.path == '/admin-dashboard/staff-dashboard' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-tachometer-alt w-6 text-center mr-3"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <!-- Restaurant (staff-scoped view) -->
+      {% comment %} <li>
+        <a href="{% url 'admin_restaurant_list' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if '/admin-dashboard/restaurants/' in request.path %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-store-alt w-6 text-center mr-3"></i>
+          <span>Restaurants</span>
+        </a>
+      </li> {% endcomment %}
+
+      <!-- Menu Items (staff-scoped listing) -->
+      <li>
+        <a href="{% url 'admin_menuItems_list' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if '/admin-dashboard/menuItems/' in request.path %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-box w-6 text-center mr-3"></i>
+          <span>Menu Items</span>
+        </a>
+      </li>
+
+      <!-- Order (staff-scoped listing) -->
+      <li>
+        <a href="{% url 'admin_orders_list' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if '/admin-dashboard/orders/' in request.path %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-shopping-cart w-6 text-center mr-3"></i>
+          <span>Orders</span>
+        </a>
+      </li>
+
+            <!-- Delivery Management -->
+      <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-truck w-6 text-center text-gray-500 mr-3"></i>
+          <span>Delivery</span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/delivery' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/delivery' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'admin_delivery_persons_list' %}"
+              class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                      {% if 'delivery-persons' in request.path %}text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-users w-5 text-center text-gray-500 mr-3"></i>
+              <span>Delivery Persons</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'admin_delivery_assignments_list' %}"
+              class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                      {% if 'delivery-assignments' in request.path %}text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-tasks w-5 text-center text-gray-500 mr-3"></i>
+              <span>Assignments</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+
+
+      <!-- Profile -->
+      <li>
+        <a href="{% url 'staff_profile' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/profile/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-user w-6 text-center mr-3"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+
+    </ul>
+  </nav>
+
+  {% elif request.user.role.role == 'restaurant' %}
+  <!-- ====================== RESTAURANT ====================== -->
+  <nav class="flex-grow overflow-y-auto py-4 text-md" aria-label="Sidebar navigation">
+    <ul class="space-y-1 px-2">
+
+    <!-- Dashboard -->
+    <li>
+      <a href="{% url 'restaurant_dashboard' %}"
+         class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                {% if request.path == '/admin-dashboard/restaurant-dashboard/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+        <i class="fas fa-tachometer-alt w-6 text-center text-gray-500 mr-3"></i>
+        <span>Dashboard</span>
+      </a>
+    </li>
+
+
+    <!-- Menu Sections -->
+    <li>
+      <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+        <i class="fas fa-layer-group w-6 text-center text-gray-500 mr-3"></i>
+        <span>Menu Sections</span>
+        <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/menu-sections/' in request.path %}rotate-180{% endif %}"></i>
+      </button>
+      <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/menu-sections/' not in request.path %}hidden{% endif %}">
+        <li>
+          <a href="{% url 'restaurant_menu_sections_list' %}"
+             class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                    {% if '/admin-dashboard/menu-sections/' in request.path and not '/add/' in request.path %}text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+            <i class="fas fa-list w-5 text-center text-gray-500 mr-3"></i>
+            <span>List Sections</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'restaurant_menu_section_add' %}"
+             class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                    {% if '/admin-dashboard/menu-sections/add/' in request.path %}text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+            <i class="fas fa-plus w-5 text-center text-gray-500 mr-3"></i>
+            <span>Add Section</span>
+          </a>
+        </li>
+      </ul>
+    </li>
+
+
+        <!-- Menu Items -->
+    <li>
+      <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+        <i class="fas fa-utensils w-6 text-center text-gray-500 mr-3"></i>
+        <span>Menu Items</span>
+        <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/restaurant/menu-items/' in request.path %}rotate-180{% endif %}"></i>
+      </button>
+      <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/restaurant/menu-items/' not in request.path %}hidden{% endif %}">
+        <li>
+          <a href="{% url 'restaurant_menu_items_list' %}"
+             class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                    {% if '/admin-dashboard/restaurant/menu-items/' in request.path and not '/add/' in request.path %}text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+            <i class="fas fa-list-ul w-5 text-center text-gray-500 mr-3"></i>
+            <span>List Menu Items</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'restaurant_menu_item_add' %}"
+             class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                    {% if '/admin-dashboard/restaurant/menu-items/add/' in request.path %}text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+            <i class="fas fa-plus w-5 text-center text-gray-500 mr-3"></i>
+            <span>Add Menu Item</span>
+          </a>
+        </li>
+      </ul>
+    </li>
+
+
+
+      <!-- Orders -->
+      <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-shopping-cart w-6 text-center text-gray-500 mr-3"></i>
+          <span>Orders</span>
+          <span class="bg-blue-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full ml-2">
+      {{ total_vendor_pending_orders }}
+    </span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/restaurant/orders/' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/restaurant/orders/' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'restaurant_orders_list' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/restaurant/orders/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+
+              
+              <i class="fas fa-list w-5 text-center mr-3"></i>
+              All Orders
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'restaurant_orders_pending' %}"
+               class="sublink flex items-center justify-between px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/restaurant/orders/pending/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <div class="flex items-center">
+                <i class="fas fa-hourglass-half w-5 text-center mr-3"></i>
+                Pending Orders
+              </div>
+              <span class="bg-blue-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                {{ total_vendor_pending_orders }}
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'restaurant_orders_delivered' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/restaurant/orders/delivered/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-check-circle w-5 text-center mr-3"></i>
+              Delivered Orders
+            </a>
+          </li>
+        </ul>
+      </li>
+
+      <!-- Payouts -->
+      <li>
+        <button class="sidebar-dropdown-toggle flex items-center w-full px-4 py-2 rounded-md text-gray-600 font-medium hover:bg-gray-100 transition-all duration-200">
+          <i class="fas fa-file-invoice-dollar w-6 text-center text-gray-500 mr-3"></i>
+          <span>Payout</span>
+          <i class="dropdown-icon fas fa-chevron-down text-xs ml-auto transition-transform duration-200 {% if '/admin-dashboard/restaurant/payout-lists/' in request.path or '/admin-dashboard/restaurant/payouts/' in request.path %}rotate-180{% endif %}"></i>
+        </button>
+        <ul class="sidebar-submenu pl-6 mt-1 {% if '/admin-dashboard/restaurant/payout-lists/' not in request.path and '/admin-dashboard/restaurant/payouts/' not in request.path %}hidden{% endif %}">
+          <li>
+            <a href="{% url 'restaurant_payout_list' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/restaurant/payout-lists/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-list w-5 text-center mr-3"></i>
+              All Requests
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'restaurant_pending_payout' %}"
+               class="sublink flex items-center justify-between px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/restaurant/payouts/pending/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <div class="flex items-center">
+                <i class="fas fa-hourglass-half w-5 text-center mr-3"></i>
+                Pending
+              </div>
+              <span class="bg-blue-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                {{ total_vendor_pending_payouts }}
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'restaurant_rejected_payout' %}"
+               class="sublink flex items-center px-4 py-2 rounded-md text-sm transition-all duration-200
+                      {% if request.path == '/admin-dashboard/restaurant/payouts/rejected/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-times-circle w-5 text-center mr-3"></i>
+              Rejected
+            </a>
+          </li>
+        </ul>
+      </li>
+
+
+
+      <!-- Wallets -->
+      <li>
+        <a href="{% url 'restaurant_wallet_view' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/restaurant/wallet/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-wallet w-6 text-center text-gray-500 mr-3"></i>
+          <span>Wallets</span>
+        </a>
+      </li>
+
+      <!-- Invoices -->
+      <li>
+        <a href="{% url 'restaurant_invoices_list' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/vendor/invoice/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-file-invoice w-6 text-center text-gray-500 mr-3"></i>
+          <span>Invoices</span>
+        </a>
+      </li>
+
+      <!-- Review -->
+      <li>
+        <a href="{% url 'restaurant_menu_item_reviews_list' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/vendor/reviews/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-star w-6 text-center text-gray-500 mr-3"></i>
+          <span>Review</span>
+        </a>
+      </li>
+
+      <!-- Profile -->
+      <li>
+        <a href="{% url 'restaurant_profile' %}"
+           class="sidebar-link flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200
+                  {% if request.path == '/admin-dashboard/vendor/profile/' %}bg-blue-50 text-blue-600 font-semibold{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          <i class="fas fa-user w-6 text-center text-gray-500 mr-3"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+
+    </ul>
+  </nav>
+  {% endif %}
+
+  <!-- Bottom – Logout (common) -->
+  <div class="border-t border-gray-200 pt-2 px-2">
+    <ul class="space-y-1">
+      <li>
+        <a href="{% url 'logout' %}"
+           class="flex items-center px-4 py-2 rounded-md text-red-600 font-medium hover:bg-red-50 transition-all duration-200">
+          <i class="fas fa-sign-out-alt w-6 text-center mr-3"></i>
+          Logout
+        </a>
+      </li>
+    </ul>
+  </div>
+</aside>
+
+<!-- Mobile overlay -->
+<div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Toggle mobile sidebar
+  const menuButton = document.getElementById('mobile-menu-button');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+
+  if (menuButton) {
+    menuButton.addEventListener('click', function() {
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+      document.body.classList.toggle('overflow-hidden');
+      
+      const icon = this.querySelector('i');
+      if (icon) {
+        icon.classList.toggle('fa-bars');
+        icon.classList.toggle('fa-times');
+      }
+    });
+  }
+
+  // Close sidebar when clicking overlay
+  if (overlay) {
+    overlay.addEventListener('click', function() {
+      sidebar.classList.add('-translate-x-full');
+      this.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+      
+      if (menuButton) {
+        const icon = menuButton.querySelector('i');
+        if (icon) {
+          icon.classList.remove('fa-times');
+          icon.classList.add('fa-bars');
+        }
+      }
+    });
+  }
+
+  // Dropdown toggle functionality - Works for both admin and vendor
+  const dropdownToggles = document.querySelectorAll('.sidebar-dropdown-toggle');
+  
+  dropdownToggles.forEach(toggle => {
+    toggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const submenu = this.nextElementSibling;
+      const icon = this.querySelector('.dropdown-icon');
+      const parentLi = this.parentElement;
+      
+      // Close other dropdowns at the same level
+      const siblings = Array.from(parentLi.parentElement.children);
+      siblings.forEach(sibling => {
+        if (sibling !== parentLi) {
+          const siblingSubmenu = sibling.querySelector('.sidebar-submenu');
+          const siblingIcon = sibling.querySelector('.dropdown-icon');
+          if (siblingSubmenu) {
+            siblingSubmenu.classList.add('hidden');
+          }
+          if (siblingIcon) {
+            siblingIcon.classList.remove('rotate-180');
+          }
+        }
+      });
+      
+      // Toggle current dropdown
+      if (submenu) {
+        submenu.classList.toggle('hidden');
+      }
+      if (icon) {
+        icon.classList.toggle('rotate-180');
+      }
+    });
+  });
+
+  // Save and restore sidebar scroll position
+  const navElement = document.querySelector('#sidebar nav');
+  if (navElement) {
+    // Restore scroll position on page load
+    const savedScrollPos = localStorage.getItem('sidebar-scroll-pos');
+    if (savedScrollPos) {
+      navElement.scrollTop = parseInt(savedScrollPos);
+    }
+
+    // Save scroll position before leaving page
+    window.addEventListener('beforeunload', function() {
+      localStorage.setItem('sidebar-scroll-pos', navElement.scrollTop);
+    });
+
+    // Also save when clicking any link in sidebar
+    document.querySelectorAll('#sidebar a').forEach(link => {
+      link.addEventListener('click', function() {
+        localStorage.setItem('sidebar-scroll-pos', navElement.scrollTop);
+      });
+    });
+  }
+
+});
+</script>

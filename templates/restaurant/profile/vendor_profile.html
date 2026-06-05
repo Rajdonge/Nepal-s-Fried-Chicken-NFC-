@@ -1,0 +1,123 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="p-6 bg-gray-100 min-h-screen space-y-6">
+
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+      <i class="fas fa-store text-blue-600"></i> {{ vendor.shop_name }} Profile
+    </h1>
+    <div class="flex gap-3">
+      <a href="{% url 'restaurant_edit_profile' %}" 
+         class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 flex items-center gap-2 transition">
+        <i class="fas fa-edit"></i> Edit Profile
+      </a>
+      <a href="{% url 'change_password'%}" 
+         class="bg-gray-600 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-700 flex items-center gap-2 transition">
+        <i class="fas fa-key"></i> Change Password
+      </a>
+    </div>
+  </div>
+
+  <!-- Shop & KYC Info -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- Shop Info -->
+    <div class="bg-white rounded-xl shadow p-6 hover:shadow-lg transition">
+      <h2 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+        <i class="fas fa-info-circle text-gray-500"></i> Shop Details
+      </h2>
+      <div class="space-y-2 text-gray-700">
+        <p><i class="fas fa-tag text-gray-400 mr-1"></i><span class="font-medium">Shop Name:</span> {{ vendor.shop_name }}</p>
+        <p><i class="fas fa-envelope text-gray-400 mr-1"></i><span class="font-medium">Email:</span> {{ vendor.email }}</p>
+        <p><i class="fas fa-phone-alt text-gray-400 mr-1"></i><span class="font-medium">Phone:</span> {{ vendor.phone }}</p>
+        <p><i class="fas fa-map-marker-alt text-gray-400 mr-1"></i><span class="font-medium">Address:</span> {{ vendor.address }}, {{ vendor.city }}, {{ vendor.get_province_display }}</p>
+        <p><i class="fas fa-align-left text-gray-400 mr-1"></i><span class="font-medium">Description:</span> {{ vendor.description|default:"-" }}</p>
+      </div>
+    </div>
+
+    <!-- KYC Info -->
+    <div class="bg-white rounded-xl shadow p-6 hover:shadow-lg transition">
+      <h2 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+        <i class="fas fa-id-card text-gray-500"></i> KYC Verification
+      </h2>
+      <div class="space-y-2 text-gray-700">
+        <p>
+          <i class="fas fa-id-badge text-gray-400 mr-1"></i>
+          <span class="font-medium">PAN Number:</span> {{ vendor.pan_number }}
+          {% if vendor.pan_document %}
+            <a href="{{ vendor.pan_document.url }}" target="_blank" class="text-blue-600 hover:underline ml-2">
+              <i class="fas fa-file-pdf"></i> View
+            </a>
+          {% endif %}
+        </p>
+        <p>
+          <i class="fas fa-building text-gray-400 mr-1"></i>
+          <span class="font-medium">Citizenship / Company:</span>
+          {% if vendor.citizenship_number %}
+            {{ vendor.citizenship_number }}
+            {% if vendor.citizenship_front %}
+              <a href="{{ vendor.citizenship_front.url }}" target="_blank" class="text-blue-600 hover:underline ml-1">
+                <i class="fas fa-file-image"></i> Front
+              </a>
+            {% endif %}
+            {% if vendor.citizenship_back %}
+              <a href="{{ vendor.citizenship_back.url }}" target="_blank" class="text-blue-600 hover:underline ml-1">
+                <i class="fas fa-file-image"></i> Back
+              </a>
+            {% endif %}
+          {% elif vendor.company_registration %}
+            <a href="{{ vendor.company_registration.url }}" target="_blank" class="text-blue-600 hover:underline">
+              <i class="fas fa-file-pdf"></i> Company Registration
+            </a>
+          {% else %}
+            <span class="text-gray-400">Not Provided</span>
+          {% endif %}
+        </p>
+        <p>
+          <i class="fas fa-check-circle text-gray-400 mr-1"></i>
+          <span class="font-medium">Verification Status:</span>
+          {% if vendor.verification_status == 'pending' %}
+            <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Pending</span>
+          {% elif vendor.verification_status == 'verified' %}
+            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Verified</span>
+          {% else %}
+            <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Rejected</span>
+          {% endif %}
+        </p>
+        {% if vendor.rejection_reason %}
+        <p><i class="fas fa-exclamation-circle text-red-500 mr-1"></i><span class="font-medium">Rejection Reason:</span> {{ vendor.rejection_reason }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Shop Logo / Banner -->
+  <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl shadow p-4 text-center hover:shadow-lg transition">
+      <h3 class="font-semibold mb-2 flex items-center justify-center gap-2">
+        <i class="fas fa-image text-gray-400"></i> Shop Logo
+      </h3>
+      {% if vendor.shop_logo %}
+        <img src="{{ vendor.shop_logo.url }}" alt="Shop Logo" class="mx-auto h-32 w-32 object-cover rounded-full border border-gray-200">
+      {% else %}
+        <p class="text-gray-400">No Logo Uploaded</p>
+      {% endif %}
+    </div>
+    <div class="bg-white rounded-xl shadow p-4 text-center hover:shadow-lg transition">
+      <h3 class="font-semibold mb-2 flex items-center justify-center gap-2">
+        <i class="fas fa-image text-gray-400"></i> Shop Banner
+      </h3>
+      {% if vendor.shop_banner %}
+        <img src="{{ vendor.shop_banner.url }}" alt="Shop Banner" class="mx-auto h-32 w-full object-cover rounded-lg border border-gray-200">
+      {% else %}
+        <p class="text-gray-400">No Banner Uploaded</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

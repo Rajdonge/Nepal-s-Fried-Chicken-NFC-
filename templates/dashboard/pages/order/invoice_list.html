@@ -1,0 +1,160 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+  /* Improve table visibility */
+  table.dataTable {
+    border-collapse: collapse !important;
+  }
+  
+  .badge-paid {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+  
+  .badge-pending {
+    background-color: #fef9c3;
+    color: #854d0e;
+  }
+  
+  .badge-failed {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800 flex items-center gap-3">
+        <i class="fa-solid fa-file-invoice text-blue-600"></i>
+        <span>Invoices for Order 
+          <span class="text-blue-600">#{{ order_number }}</span>
+        </span>
+      </h1>
+      <p class="mt-1 text-sm text-gray-500">
+        {{ invoices|length }} Invoice{{ invoices|pluralize }}
+      </p>
+    </div>
+
+    <a href="{% url 'admin_orders_list' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+       class="inline-flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+      <i class="fa-solid fa-arrow-left"></i> Back to Orders
+    </a>
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto">
+    {% if invoices %}
+    <table id="invoiceTable" class="min-w-full text-sm border border-gray-200 rounded-lg">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 text-left">Invoice #</th>
+          <th class="px-4 py-3 text-left">Restaurant</th>
+          <th class="px-4 py-3 text-left">Customer</th>
+          <th class="px-4 py-3 text-left">Subtotal</th>
+          <th class="px-4 py-3 text-left">Tax</th>
+          <th class="px-4 py-3 text-left">Total</th>
+          <th class="px-4 py-3 text-left">Payment Status</th>
+          <th class="px-4 py-3 text-left">Date</th>
+          <th class="px-4 py-3 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for invoice in invoices %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium">{{ invoice.invoice_number }}</td>
+          
+          <!-- Fixed: Changed from invoice.vendor to invoice.restaurant -->
+          <td class="px-4 py-3">
+            {% if invoice.restaurant %}
+              {{ invoice.restaurant.restaurant_name }}<br>
+              <span class="text-xs text-gray-500">{{ invoice.restaurant.user.email }}</span>
+            {% else %}
+              <span class="text-gray-400">Restaurant deleted</span>
+            {% endif %}
+          </td>
+
+          <td class="px-4 py-3">
+            {% if invoice.is_guest %}
+              <!-- Guest customer info -->
+              {{ invoice.guest_name|default:invoice.billing_full_name }}<br>
+              <span class="text-xs text-gray-500">{{ invoice.guest_email|default:invoice.billing_email }}</span>
+            {% elif invoice.customer %}
+              {{ invoice.customer.get_full_name|default:invoice.customer.username }}<br>
+              <span class="text-xs text-gray-500">{{ invoice.customer.email }}</span>
+            {% else %}
+              <span class="text-gray-400">Customer deleted</span>
+            {% endif %}
+          </td>
+
+          <td class="px-4 py-3">Rs {{ invoice.subtotal|floatformat:2 }}</td>
+          <td class="px-4 py-3">Rs {{ invoice.tax_amount|floatformat:2 }}</td>
+          <td class="px-4 py-3 font-semibold text-green-700">Rs {{ invoice.total|floatformat:2 }}</td>
+
+          <td class="px-4 py-3">
+            <span class="px-2 py-1 rounded-full text-xs font-medium
+              {% if invoice.payment_status == 'paid' %}bg-green-100 text-green-700
+              {% elif invoice.payment_status == 'pending' %}bg-yellow-100 text-yellow-700
+              {% elif invoice.payment_status == 'failed' %}bg-red-100 text-red-700
+              {% endif %}">
+              {{ invoice.payment_status|capfirst }}
+            </span>
+          </td>
+
+          <td class="px-4 py-3">{{ invoice.created_at|date:"Y-m-d h:i A" }}</td>
+
+          <td class="px-4 py-3 text-center">
+            <a href="{% url 'admin_invoice_detail' invoice.invoice_number %}{% if request.GET.next %}?next={{ request.GET.next }}{% elif request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+              class="text-blue-600 hover:text-blue-800" title="View Invoice">
+              <i class="fa-solid fa-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <!-- Empty state - no DataTable initialization needed -->
+    <div class="text-center py-12 border border-gray-200 rounded-lg">
+      <i class="fa-solid fa-file-invoice text-5xl text-gray-300 mb-3"></i>
+      <div class="font-medium text-gray-500">No invoices found for this order</div>
+      <p class="text-sm text-gray-400 mt-1">Invoices will appear here once generated</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if invoices %}
+<script>
+$(document).ready(function () {
+  $('#invoiceTable').DataTable({
+    responsive: true,
+    pageLength: 10,
+    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+    ordering: true,
+    order: [[7, 'desc']], // sort by Date column (index 7)
+    language: {
+      search: "_INPUT_",
+      searchPlaceholder: "Search invoices...",
+      lengthMenu: "Show _MENU_ per page",
+      info: "Showing _START_ to _END_ of _TOTAL_ invoices",
+      infoEmpty: "Showing 0 to 0 of 0 invoices",
+      infoFiltered: "(filtered from _MAX_ total invoices)",
+      zeroRecords: "No matching invoices found",
+      emptyTable: "No invoices available"
+    },
+    columnDefs: [
+      { orderable: false, targets: [8] } // disable sorting on Actions column (index 8)
+    ]
+  });
+});
+</script>
+{% endif %}
+{% endblock %}

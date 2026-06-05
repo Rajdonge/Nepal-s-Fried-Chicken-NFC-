@@ -1,0 +1,280 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8">
+  <div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="px-6 py-5 border-b flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <span class="text-2xl text-blue-600"><i class="fas fa-motorcycle"></i></span>
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800">Create Delivery Person</h2>
+          <p class="text-sm text-gray-500">Add new delivery person account.</p>
+        </div>
+      </div>
+      <a href="{% url 'admin_delivery_persons_list' %}" class="text-sm text-blue-600 hover:underline">← Back</a>
+    </div>
+
+    <div class="p-6">
+      {% if messages %}
+        <div class="mb-4">
+          {% for message in messages %}
+            <div class="px-4 py-3 rounded-md mb-2 {% if message.tags %}bg-{{ message.tags }}-50 border {{ message.tags }}-200{% else %}bg-gray-50{% endif %}">
+              <p class="text-sm text-gray-700">{{ message }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" class="space-y-6" id="deliveryForm">
+        {% csrf_token %}
+        
+        <!-- Personal Information -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-user text-blue-600 mr-2"></i> Personal Information
+          </h3>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">First Name <span class="text-red-500">*</span></label>
+              <input type="text" name="first_name" value="{{ form_data.first_name|default:'' }}" required 
+                     class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="John">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Last Name </label>
+              <input type="text" name="last_name" value="{{ form_data.last_name|default:'' }}"
+                     class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="Doe">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
+              <input type="email" name="email" value="{{ form_data.email|default:'' }}" required 
+                     class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="delivery@example.com">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Phone Number <span class="text-red-500">*</span></label>
+              <input type="tel" name="phone" value="{{ form_data.phone|default:'' }}" required 
+                     class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="9841234567">
+            </div>
+          </div>
+        </div>
+
+        <!-- Address -->
+        <div class="border-t pt-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-map-marker-alt text-blue-600 mr-2"></i> Address
+          </h3>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Address <span class="text-red-500">*</span></label>
+            <textarea name="address" required rows="3" 
+                      class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400" 
+                      placeholder="Street address, apartment, city, etc.">{{ form_data.address|default:'' }}</textarea>
+          </div>
+        </div>
+
+
+
+                <!-- District Assignment -->
+        <div class="border-t pt-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-location-dot text-blue-600 mr-2"></i> District Assignment
+          </h3>
+
+          {% if is_staff %}
+            <!-- Staff: Read-only field (auto-assigned) -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Assigned District <span class="text-red-500">*</span></label>
+              <input type="text" value="{{ staff_district }}" disabled 
+                    class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 text-gray-600 cursor-not-allowed">
+              <input type="hidden" name="district" value="{{ staff_district }}">
+              <p class="text-xs text-gray-500 mt-1">Auto-assigned to your district</p>
+            </div>
+          {% else %}
+            <!-- Admin: Searchable dropdown -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">District <span class="text-red-500">*</span></label>
+              <input 
+                type="text" 
+                id="districtSearch" 
+                placeholder="Search or select district..." 
+                class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400">
+              
+              <select 
+                name="district" 
+                id="districtSelect"
+                required
+                class="mt-2 block w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400" 
+                size="8">
+                <option value="">-- Select District --</option>
+                {% for district in districts %}
+                  <option value="{{ district }}" {% if form_data.district == district %}selected{% endif %}>{{ district }}</option>
+                {% endfor %}
+              </select>
+              <p class="text-xs text-gray-500 mt-1">Type to search districts</p>
+            </div>
+          {% endif %}
+        </div>
+        <!-- Account Information -->
+        <div class="border-t pt-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-lock text-blue-600 mr-2"></i> Account Information
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Password <span class="text-red-500">*</span></label>
+              <input type="password" id="password" name="password" required 
+                     class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="Enter password">
+              <div id="passwordLengthMessage" class="mt-2 text-sm hidden flex items-center space-x-1">
+                <span id="lengthIndicator">✗</span>
+                <span id="lengthText">Minimum 8 characters required</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Confirm Password <span class="text-red-500">*</span></label>
+              <input type="password" id="confirm_password" name="confirm_password" required 
+                     class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="Confirm password">
+              <div id="passwordMatchMessage" class="mt-2 text-sm hidden flex items-center space-x-1">
+                <span id="matchIndicator">✓</span>
+                <span id="matchText">Passwords match</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="border-t pt-6 flex justify-end items-center space-x-3">
+          <a href="{% url 'admin_delivery_persons_list' %}" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</a>
+          <button type="submit" id="submitBtn" class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed transition" disabled>
+            <i class="fas fa-check"></i>
+            <span>Create Delivery Person</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const deliveryForm = document.getElementById('deliveryForm');
+  const firstNameInput = deliveryForm.querySelector('input[name="first_name"]');
+  const lastNameInput = deliveryForm.querySelector('input[name="last_name"]');
+  const emailInput = deliveryForm.querySelector('input[name="email"]');
+  const phoneInput = deliveryForm.querySelector('input[name="phone"]');
+  const addressInput = deliveryForm.querySelector('textarea[name="address"]');
+  const passwordInput = document.getElementById('password');
+  const confirmPasswordInput = document.getElementById('confirm_password');
+  const submitBtn = document.getElementById('submitBtn');
+  const passwordLengthMessage = document.getElementById('passwordLengthMessage');
+  const passwordMatchMessage = document.getElementById('passwordMatchMessage');
+  const lengthIndicator = document.getElementById('lengthIndicator');
+  const lengthText = document.getElementById('lengthText');
+  const matchIndicator = document.getElementById('matchIndicator');
+  const matchText = document.getElementById('matchText');
+  const districtSearch = document.getElementById('districtSearch');
+  const districtSelect = document.getElementById('districtSelect');
+
+  function validatePassword() {
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    let passwordValid = false;
+
+    if (!password && !confirmPassword) {
+      passwordLengthMessage.classList.add('hidden');
+      passwordMatchMessage.classList.add('hidden');
+      return false;
+    }
+
+    if (password) {
+      if (password.length < 8) {
+        lengthIndicator.textContent = '✗';
+        lengthIndicator.className = 'text-red-600 font-bold';
+        lengthText.textContent = `${password.length}/8 characters`;
+        passwordLengthMessage.classList.remove('hidden');
+      } else {
+        lengthIndicator.textContent = '✓';
+        lengthIndicator.className = 'text-green-600 font-bold';
+        lengthText.textContent = 'Password length OK';
+        passwordLengthMessage.classList.remove('hidden');
+        passwordValid = true;
+      }
+    }
+
+    if (password && confirmPassword) {
+      if (password === confirmPassword && password.length >= 8) {
+        matchIndicator.textContent = '✓';
+        matchIndicator.className = 'text-green-600 font-bold';
+        matchText.textContent = 'Passwords match';
+        passwordMatchMessage.classList.remove('hidden');
+        passwordValid = true;
+      } else {
+        matchIndicator.textContent = '✗';
+        matchIndicator.className = 'text-red-600 font-bold';
+        matchText.textContent = 'Passwords do not match';
+        passwordMatchMessage.classList.remove('hidden');
+        passwordValid = false;
+      }
+    } else if (password && !confirmPassword) {
+      passwordMatchMessage.classList.add('hidden');
+      passwordValid = false;
+    }
+
+    return passwordValid;
+  }
+
+  // District search filtering
+  if (districtSearch && districtSelect) {
+    districtSearch.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const options = districtSelect.querySelectorAll('option');
+      
+      options.forEach(option => {
+        if (option.value === '') {
+          option.style.display = 'block';
+          return;
+        }
+        
+        const districtName = option.textContent.toLowerCase();
+        option.style.display = districtName.includes(searchTerm) ? 'block' : 'none';
+      });
+    });
+
+    // Auto-fill search input when district is selected
+    districtSelect.addEventListener('change', function() {
+      if (this.value) {
+        districtSearch.value = this.options[this.selectedIndex].text;
+      }
+    });
+  }
+
+  function validateForm() {
+    const firstName = firstNameInput.value.trim();
+    const lastName = lastNameInput.value.trim();
+    const email = emailInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const address = addressInput.value.trim();
+    const passwordValid = validatePassword();
+
+    const allFieldsFilled = firstName && email && phone && address;
+    const canSubmit = allFieldsFilled && passwordValid;
+
+    submitBtn.disabled = !canSubmit;
+  }
+
+  passwordInput.addEventListener('input', validateForm);
+  confirmPasswordInput.addEventListener('input', validateForm);
+  firstNameInput.addEventListener('input', validateForm);
+  emailInput.addEventListener('input', validateForm);
+  phoneInput.addEventListener('input', validateForm);
+  addressInput.addEventListener('input', validateForm);
+
+  validateForm();
+});
+</script>
+{% endblock %}

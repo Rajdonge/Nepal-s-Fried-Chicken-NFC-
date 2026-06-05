@@ -1,0 +1,665 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}{{ childcategory.name }} - Products{% endblock %}
+
+{% block content %}
+
+<!-- Category Header -->
+<section class="bg-gradient-to-r from-orange-50 to-orange-100 py-6 md:py-10">
+  <div class="container mx-auto px-4">
+    <h1 class="text-2xl md:text-4xl font-bold text-gray-800 mb-2">
+      {{ childcategory.name }}
+    </h1>
+    {% if childcategory.category %}
+    <p class="text-sm text-gray-500 mb-2">
+      <a href="{% url 'category_details' childcategory.category.slug %}" class="hover:text-orange-600 transition">
+        {{ childcategory.category.name }}
+      </a> 
+      <i class="fas fa-chevron-right text-xs mx-1"></i> 
+      {{ childcategory.name }}
+    </p>
+    {% endif %}
+    <p class="text-gray-600 text-sm md:text-base">
+      <span id="productCount">{{ products|length }}</span> products available
+    </p>
+  </div>
+</section>
+
+<!-- Main Content -->
+<section class="container mx-auto px-4 py-6 md:py-8">
+  <div class="flex flex-col lg:flex-row gap-6">
+    
+    <!-- Sidebar Filters -->
+    <aside class="w-full lg:w-64 space-y-4">
+      <!-- Mobile Filter Toggle -->
+      <button id="filterToggle" class="lg:hidden w-full bg-orange-500 text-white px-4 py-3 rounded-lg font-semibold flex items-center justify-between shadow-md hover:bg-orange-600 cursor-pointer transition">
+        <span><i class="fas fa-filter mr-2"></i>Filters</span>
+        <i class="fas fa-chevron-down transition-transform duration-300" id="filterIcon"></i>
+      </button>
+
+      <!-- Filter Panel -->
+      <div id="filterPanel" class="hidden lg:block space-y-4">
+        
+        <!-- Search Filter -->
+        <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+          <h3 class="font-semibold text-gray-800 mb-3 flex items-center text-sm md:text-base">
+            <i class="fas fa-search text-orange-500 mr-2"></i>Search Products
+          </h3>
+          <input type="text" id="searchInput" placeholder="Search by name..." 
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm transition">
+        </div>
+
+        <!-- Brand Filter -->
+        <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+          <h3 class="font-semibold text-gray-800 mb-3 flex items-center text-sm md:text-base">
+            <i class="fas fa-tag text-orange-500 mr-2"></i>Brands
+
+          </h3>
+          <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+            {% if brands %}
+              {% for brand in brands %}
+              <label class="flex items-center cursor-pointer group hover:bg-gray-50 p-2 rounded-lg transition">
+                <input type="checkbox" class="brand-filter w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500" 
+                       value="{{ brand.id }}" data-brand-name="{{ brand.name }}">
+                <span class="ml-3 text-sm text-gray-700 group-hover:text-orange-600 transition">{{ brand.name }}</span>
+              </label>
+              {% endfor %}
+            {% else %}
+              <p class="text-sm text-gray-500 italic">No brands available</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+          <h3 class="font-semibold text-gray-800 mb-3 flex items-center text-sm md:text-base">
+            <i class="fas fa-tag text-orange-500 mr-2"></i>Price Range
+          </h3>
+          <div class="space-y-3">
+            <div class="flex gap-2">
+              <input type="number" id="minPrice" placeholder="Min (Rs)" 
+                     class="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm transition">
+              <input type="number" id="maxPrice" placeholder="Max (Rs)" 
+                     class="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm transition">
+            </div>
+            <button id="applyPriceFilter" class="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 active:bg-orange-700 transition shadow-sm hover:shadow-md text-sm font-medium">
+              <i class="fas fa-check mr-1"></i>Apply Price
+            </button>
+          </div>
+        </div>
+
+        <!-- Availability Filter -->
+        <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+          <h3 class="font-semibold text-gray-800 mb-3 flex items-center text-sm md:text-base">
+            <i class="fas fa-check-circle text-orange-500 mr-2"></i>Availability
+          </h3>
+          <div class="space-y-2">
+            <label class="flex items-center cursor-pointer group hover:bg-gray-50 p-2 rounded-lg transition">
+              <input type="checkbox" class="stock-filter w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500" value="in_stock">
+              <span class="ml-3 text-sm text-gray-700 group-hover:text-orange-600 transition">In Stock</span>
+            </label>
+            <label class="flex items-center cursor-pointer group hover:bg-gray-50 p-2 rounded-lg transition">
+              <input type="checkbox" class="stock-filter w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500" value="out_of_stock">
+              <span class="ml-3 text-sm text-gray-700 group-hover:text-orange-600 transition">Out of Stock</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Sort By -->
+        <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+          <h3 class="font-semibold text-gray-800 mb-3 flex items-center text-sm md:text-base">
+            <i class="fas fa-sort text-orange-500 mr-2"></i>Sort By
+          </h3>
+          <select id="sortBy" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white transition">
+            <option value="">Default Order</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="name-asc">Name: A to Z</option>
+            <option value="name-desc">Name: Z to A</option>
+            <option value="discount">Discount: High to Low</option>
+            <option value="newest">Newest First</option>
+          </select>
+        </div>
+
+        <!-- Clear Filters -->
+        <button id="clearFilters" class="w-full bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 active:bg-gray-400 transition font-medium text-sm shadow-sm">
+          <i class="fas fa-redo mr-2"></i>Clear All Filters
+        </button>
+      </div>
+    </aside>
+
+    <!-- Products Grid -->
+    <main class="flex-1">
+      <!-- Active Filters Display -->
+      <div id="activeFilters" class="mb-4 flex flex-wrap gap-2"></div>
+
+      <!-- Products Grid -->
+      <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+        {% for product in products %}
+        <div class="product-card relative bg-gray-100 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 w-full max-w-[250px] mx-auto cursor-pointer"
+             data-product-id="{{ product.id }}"
+             data-name="{{ product.name|lower }}"
+             data-price="{{ product.price }}"
+             data-discount="{{ product.discount_percentage|default:0 }}"
+             data-brand-id="{{ product.brand.id|default:'' }}"
+             data-brand-name="{{ product.brand.name|default:'No Brand'|lower }}"
+             data-in-stock="{{ product.in_stock|yesno:'true,false' }}">
+          
+          <!-- Product Image -->
+          <a href="{% url 'product_details' product.slug %}" class="block relative group bg-white rounded-xl m-2">
+            <img src="{{ product.main_image.url|default:'https://via.placeholder.com/250' }}"
+                 alt="{{ product.name }}"
+                 class="w-full h-48 sm:h-56 md:h-60 object-contain rounded-xl transition-transform duration-300 group-hover:scale-105" />
+            
+            {% if product.discount_percentage > 0 %}
+            <div class="absolute top-2 left-2 flex flex-col items-center z-20">
+              <i class="fa-solid fa-bookmark text-5xl text-yellow-500"></i>
+              <span class="-mt-11 text-xs font-bold text-gray-900">{{ product.discount_percentage|floatformat:0 }}%<br>OFF</span>
+            </div>
+            {% endif %}
+            
+            {% if not product.in_stock %}
+            <div class="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+              <span class="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">Out of Stock</span>
+            </div>
+            {% endif %}
+          </a>
+
+          <!-- Product Info -->
+          <section class="p-3 space-y-2">
+            <div class="flex justify-between items-start gap-2">
+              <a href="{% url 'product_details' product.slug %}"
+                 class="text-sm text-[var(--text-primary)] line-clamp-2 hover:underline">
+                 {{ product.name }}
+              </a>
+              <p class="text-xs font-medium {% if product.in_stock %}text-green-600{% else %}text-red-600{% endif %}">
+                {% if product.in_stock %}In Stock{% else %}Out of Stock{% endif %}
+              </p>
+            </div>
+
+           
+
+            <div class="flex items-center gap-2">
+              {% if product.cost_price > product.price %}
+              <p class="text-xs text-gray-400 line-through">Rs {{ product.cost_price|floatformat:0 }}</p>
+              {% endif %}
+              <p class="font-bold text-orange-600 text-sm sm:text-base">Rs {{ product.price|floatformat:0 }}</p>
+            </div>
+
+            <!-- Add to Cart -->
+            <div class="flex items-center justify-between gap-2 mt-2">
+              <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
+                <button class="decreaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm transition"
+                        {% if not product.in_stock %}disabled{% endif %}><i class="fas fa-minus text-xs"></i></button>
+                <input type="number" value="1" min="1" max="{% if product.in_stock %}{{ product.stock|default:10 }}{% else %}0{% endif %}"
+                       class="qtyInput w-12 text-center text-sm border-x-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium text-gray-900"
+                       {% if not product.in_stock %}disabled{% endif %}>
+                <button class="increaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm transition"
+                        {% if not product.in_stock %}disabled{% endif %}><i class="fas fa-plus text-xs"></i></button>
+              </div>
+
+              <button class="add-to-cart flex-1 flex items-center justify-center gap-1 text-xs sm:text-sm px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 active:bg-orange-700 transition shadow-sm cursor-pointer"
+                      data-product-id="{{ product.id }}"
+                      data-product-name="{{ product.name }}"
+                      {% if not product.in_stock %}disabled{% endif %}>
+                <i class="fa-solid fa-cart-shopping text-xs"></i><span>Add</span>
+              </button>
+            </div>
+          </section>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-16 bg-white rounded-lg shadow-sm">
+          <i class="fas fa-box-open text-6xl text-gray-300 mb-4"></i>
+          <p class="text-gray-500 text-lg font-medium">No products available in this child category.</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- No Results Message -->
+      <div id="noResultsMessage" class="hidden text-center py-16 bg-white rounded-lg shadow-sm">
+        <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+        <p class="text-gray-600 text-lg font-medium mb-2">No products match your filters</p>
+        <p class="text-gray-500 text-sm mb-4">Try adjusting your search or filter criteria</p>
+        <button id="resetFromNoResults" class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition shadow-md">
+          <i class="fas fa-redo mr-2"></i>Clear All Filters
+        </button>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- Custom Scrollbar Styles -->
+<style>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #f97316;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #ea580c;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+  
+  // ===================================
+  // TOASTR HELPER
+  // ===================================
+  function showToast(message, type = 'info') {
+    toastr.options = {
+      closeButton: true,
+      progressBar: true,
+      positionClass: "toast-top-right",
+      timeOut: 3000,
+      preventDuplicates: true
+    };
+    
+    switch (type) {
+      case 'success': toastr.success(message); break;
+      case 'error': toastr.error(message); break;
+      case 'warning': toastr.warning(message); break;
+      default: toastr.info(message); break;
+    }
+  }
+
+  // ===================================
+  // MOBILE FILTER TOGGLE
+  // ===================================
+  $('#filterToggle').on('click', function() {
+    $('#filterPanel').slideToggle(300);
+    $('#filterIcon').toggleClass('fa-chevron-down fa-chevron-up rotate-180');
+  });
+
+  // ===================================
+  // FILTER & SEARCH LOGIC
+  // ===================================
+  function filterProducts() {
+    const searchTerm = $('#searchInput').val().toLowerCase().trim();
+    const minPrice = parseFloat($('#minPrice').val()) || 0;
+    const maxPrice = parseFloat($('#maxPrice').val()) || Infinity;
+    const sortBy = $('#sortBy').val();
+    
+    // Stock filters
+    const stockFilters = [];
+    $('.stock-filter:checked').each(function() {
+      stockFilters.push($(this).val());
+    });
+    
+    // Brand filters
+    const brandFilters = [];
+    $('.brand-filter:checked').each(function() {
+      brandFilters.push($(this).val());
+    });
+    
+    let $cards = $('.product-card');
+    let visibleCount = 0;
+    
+    // Filter each product card
+    $cards.each(function() {
+      const $card = $(this);
+      const name = $card.data('name');
+      const price = parseFloat($card.data('price'));
+      const inStock = $card.data('in-stock') === true;
+      const brandId = $card.data('brand-id')?.toString() || '';
+      
+      let show = true;
+      
+      // Search filter
+      if (searchTerm && !name.includes(searchTerm)) {
+        show = false;
+      }
+      
+      // Price filter
+      if (price < minPrice || price > maxPrice) {
+        show = false;
+      }
+      
+      // Stock filter
+      if (stockFilters.length > 0) {
+        const matchStock = (stockFilters.includes('in_stock') && inStock) || 
+                           (stockFilters.includes('out_of_stock') && !inStock);
+        if (!matchStock) {
+          show = false;
+        }
+      }
+      
+      // Brand filter
+      if (brandFilters.length > 0) {
+        if (!brandId || !brandFilters.includes(brandId)) {
+          show = false;
+        }
+      }
+      
+      if (show) {
+        $card.fadeIn(200);
+        visibleCount++;
+      } else {
+        $card.fadeOut(200);
+      }
+    });
+    
+    // Sort visible products
+    if (sortBy) {
+      sortProducts(sortBy);
+    }
+    
+    // Update UI
+    updateProductCount(visibleCount);
+    updateActiveFilters();
+    
+    // Show/hide no results message
+    setTimeout(() => {
+      if (visibleCount === 0) {
+        $('#noResultsMessage').removeClass('hidden').hide().fadeIn(300);
+        $('#productsGrid').addClass('hidden');
+      } else {
+        $('#noResultsMessage').addClass('hidden');
+        $('#productsGrid').removeClass('hidden');
+      }
+    }, 250);
+  }
+
+  // ===================================
+  // SORT PRODUCTS
+  // ===================================
+  function sortProducts(sortBy) {
+    const $grid = $('#productsGrid');
+    const $cards = $grid.find('.product-card:visible').get();
+    
+    $cards.sort(function(a, b) {
+      const $a = $(a);
+      const $b = $(b);
+      
+      switch(sortBy) {
+        case 'price-asc':
+          return parseFloat($a.data('price')) - parseFloat($b.data('price'));
+        case 'price-desc':
+          return parseFloat($b.data('price')) - parseFloat($a.data('price'));
+        case 'name-asc':
+          return $a.data('name').localeCompare($b.data('name'));
+        case 'name-desc':
+          return $b.data('name').localeCompare($a.data('name'));
+        case 'discount':
+          return parseFloat($b.data('discount') || 0) - parseFloat($a.data('discount') || 0);
+        default:
+          return 0;
+      }
+    });
+    
+    $.each($cards, function(i, card) {
+      $grid.append(card);
+    });
+  }
+
+  // ===================================
+  // UPDATE PRODUCT COUNT
+  // ===================================
+  function updateProductCount(count) {
+    $('#productCount').text(count);
+  }
+
+  // ===================================
+  // UPDATE ACTIVE FILTERS DISPLAY
+  // ===================================
+  function updateActiveFilters() {
+    const $container = $('#activeFilters');
+    $container.empty();
+    
+    const searchTerm = $('#searchInput').val().trim();
+    const minPrice = $('#minPrice').val();
+    const maxPrice = $('#maxPrice').val();
+    const sortBy = $('#sortBy').val();
+    
+    if (searchTerm) {
+      $container.append(createFilterBadge('Search', searchTerm, 'search'));
+    }
+    
+    if (minPrice || maxPrice) {
+      const priceText = `Rs ${minPrice || '0'} - Rs ${maxPrice || '∞'}`;
+      $container.append(createFilterBadge('Price', priceText, 'price'));
+    }
+    
+    $('.stock-filter:checked').each(function() {
+      const label = $(this).parent().text().trim();
+      $container.append(createFilterBadge('Stock', label, 'stock'));
+    });
+    
+    $('.brand-filter:checked').each(function() {
+      const brandName = $(this).data('brand-name');
+      $container.append(createFilterBadge('Brand', brandName, 'brand', $(this).val()));
+    });
+    
+    if (sortBy) {
+      const sortText = $('#sortBy option:selected').text();
+      $container.append(createFilterBadge('Sort', sortText, 'sort'));
+    }
+  }
+
+  function createFilterBadge(label, value, type, brandId = null) {
+    const badge = $(`
+      <span class="inline-flex items-center gap-2 bg-orange-100 text-orange-800 px-3 py-1.5 rounded-full text-xs md:text-sm shadow-sm animate-fade-in">
+        <span><strong>${label}:</strong> ${value}</span>
+        <button class="remove-filter hover:text-orange-600 hover:scale-110 transition-transform" data-filter="${type}" ${brandId ? `data-brand-id="${brandId}"` : ''}>
+          <i class="fas fa-times"></i>
+        </button>
+      </span>
+    `);
+    return badge;
+  }
+
+  // ===================================
+  // REMOVE INDIVIDUAL FILTER
+  // ===================================
+  $(document).on('click', '.remove-filter', function() {
+    const filterType = $(this).data('filter');
+    const brandId = $(this).data('brand-id');
+    
+    switch(filterType) {
+      case 'search':
+        $('#searchInput').val('');
+        break;
+      case 'price':
+        $('#minPrice, #maxPrice').val('');
+        break;
+      case 'stock':
+        $('.stock-filter').prop('checked', false);
+        break;
+      case 'brand':
+        if (brandId) {
+          $(`.brand-filter[value="${brandId}"]`).prop('checked', false);
+        }
+        break;
+      case 'sort':
+        $('#sortBy').val('');
+        break;
+    }
+    
+    filterProducts();
+    showToast('Filter removed', 'info');
+  });
+
+  // ===================================
+  // CLEAR ALL FILTERS
+  // ===================================
+  $('#clearFilters, #resetFromNoResults').on('click', function() {
+    $('#searchInput').val('');
+    $('#minPrice, #maxPrice').val('');
+    $('.stock-filter, .brand-filter').prop('checked', false);
+    $('#sortBy').val('');
+    filterProducts();
+    showToast('All filters cleared', 'info');
+  });
+
+  // ===================================
+  // FILTER EVENT LISTENERS
+  // ===================================
+  $('#searchInput').on('input', debounce(filterProducts, 300));
+  $('#applyPriceFilter').on('click', filterProducts);
+  $('.stock-filter, .brand-filter').on('change', filterProducts);
+  $('#sortBy').on('change', filterProducts);
+  
+  // Enter key on price inputs
+  $('#minPrice, #maxPrice').on('keypress', function(e) {
+    if (e.which === 13) {
+      filterProducts();
+    }
+  });
+
+  // Debounce function
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // ===================================
+  // QUANTITY CONTROLS
+  // ===================================
+  $(document).on('click', '.increaseQty', function() {
+    const $input = $(this).siblings('.qtyInput');
+    const max = parseInt($input.attr('max')) || 10;
+    const current = parseInt($input.val()) || 1;
+    
+    if (current < max) {
+      $input.val(current + 1);
+    } else {
+      showToast('Maximum quantity reached', 'warning');
+    }
+  });
+
+  $(document).on('click', '.decreaseQty', function() {
+    const $input = $(this).siblings('.qtyInput');
+    const current = parseInt($input.val()) || 1;
+    
+    if (current > 1) {
+      $input.val(current - 1);
+    }
+  });
+
+  $(document).on('input', '.qtyInput', function() {
+    const $input = $(this);
+    const max = parseInt($input.attr('max')) || 10;
+    const min = parseInt($input.attr('min')) || 1;
+    let value = parseInt($input.val());
+    
+    if (isNaN(value) || value < min) {
+      value = min;
+    } else if (value > max) {
+      value = max;
+      showToast('Maximum quantity reached', 'warning');
+    }
+    
+    $input.val(value);
+  });
+
+  // ===================================
+  // ADD TO CART
+  // ===================================
+  $(document).on('click', '.add-to-cart', function(e) {
+    e.preventDefault();
+    
+    const $btn = $(this);
+    const $card = $btn.closest('.product-card');
+    const qty = parseInt($card.find('.qtyInput').val()) || 1;
+    const productId = $btn.data('product-id');
+    const productName = $btn.data('product-name');
+    const inStock = $card.data('in-stock') === true;
+
+    if (!inStock) {
+      showToast(`${productName} is out of stock`, 'error');
+      return;
+    }
+
+    if (qty <= 0) {
+      showToast('Please select a valid quantity', 'error');
+      return;
+    }
+
+    const originalHtml = $btn.html();
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+    $.ajax({
+      url: '{% url "add_to_cart" %}',
+      method: 'POST',
+      headers: { 
+        'X-CSRFToken': '{{ csrf_token }}' 
+      },
+      contentType: 'application/json',
+      data: JSON.stringify({
+        product_id: productId,
+        quantity: qty,
+        variant_id: null
+      }),
+      success: function(response) {
+        if (response.success) {
+          showToast(`${qty} × ${productName} added to cart!`, 'success');
+          
+          // Update cart badge
+          const cartCount = response.cart_count || 0;
+          $('#desktopCartBadge, #mobileCartBadge').text(cartCount);
+          
+          if (cartCount > 0) {
+            $('#desktopCartBadge, #mobileCartBadge').show();
+          }
+          
+          // Reset quantity
+          $card.find('.qtyInput').val(1);
+        } else {
+          showToast(response.message || 'Failed to add to cart', 'error');
+        }
+      },
+      error: function(xhr) {
+        const response = xhr.responseJSON;
+        
+        if (xhr.status === 401 || xhr.status === 403) {
+          showToast('Please login to add items to cart', 'warning');
+          setTimeout(() => {
+            window.location.href = '{% url "login_page" %}?next={{ request.path }}';
+          }, 1500);
+        } else {
+          showToast(response?.message || 'An error occurred while adding to cart', 'error');
+        }
+      },
+      complete: function() {
+        $btn.prop('disabled', false).html(originalHtml);
+      }
+    });
+  });
+
+});
+</script>
+{% endblock %}

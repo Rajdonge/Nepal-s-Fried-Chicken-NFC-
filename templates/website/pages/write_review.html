@@ -1,0 +1,281 @@
+{% extends 'website/components/base.html' %}
+{% load static %}
+
+{% block title %}Write a Review{% endblock %}
+
+{% block content %}
+<style>
+  .star-rating {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    gap: 0.25rem;
+  }
+  
+  .star-rating input {
+    display: none;
+  }
+  
+  .star-rating label {
+    cursor: pointer;
+    font-size: 2rem;
+    color: #d1d5db;
+    transition: all 0.2s ease;
+  }
+  
+  .star-rating label:hover,
+  .star-rating label:hover ~ label,
+  .star-rating input:checked ~ label {
+    color: #fbbf24;
+    transform: scale(1.1);
+  }
+  
+  .star-rating label:hover {
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+  }
+</style>
+
+<div class="container mx-auto px-4 py-8 sm:py-12">
+  <div class="max-w-3xl mx-auto">
+    
+    <!-- Back Button -->
+    {% if order_number %}
+    <a href="{% url 'customer_order_detail' order_number %}" 
+       class="inline-flex items-center gap-2 text-[var(--primary)] hover:text-[var(--primary-dark)] mb-6 transition-colors">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span class="font-medium">Back to Order Details</span>
+    </a>
+    {% else %}
+    <a href="{% url 'customer_orders' %}" 
+       class="inline-flex items-center gap-2 text-[var(--primary)] hover:text-[var(--primary-dark)] mb-6 transition-colors">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span class="font-medium">Back to Orders</span>
+    </a>
+    {% endif %}
+
+    <!-- Review Form Card -->
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] p-6 text-white">
+        <h1 class="text-2xl sm:text-3xl font-bold flex items-center gap-3 ">
+          <i class="fa-solid fa-star"></i>
+          {% if existing_review %}Update Your Review{% else %}Write a Review{% endif %}
+        </h1>
+        <p class="mt-2 text-white/90">
+          {% if existing_review %}
+            Edit your thoughts about this product
+          {% else %}
+            Share your experience with this product
+          {% endif %}
+        </p>
+      </div>
+
+      <!-- Product Info -->
+      <div class="p-6 bg-gray-50 border-b border-gray-200">
+        <div class="flex gap-4 items-start">
+          {% if product.main_image %}
+          <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden border-2 border-gray-200 flex-shrink-0 shadow-sm">
+            <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover hover:scale-110 transition-transform duration-300">
+          </div>
+          {% endif %}
+          
+          <div class="flex-1 min-w-0">
+            <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-1">{{ product.name }}</h2>
+            <p class="text-sm text-gray-600 flex items-center gap-2 mb-1">
+              <i class="fa-solid fa-store text-gray-400"></i>
+              <span>{{ product.vendor.shop_name }}</span>
+            </p>
+            {% if product.category %}
+            <p class="text-xs text-gray-500 mt-1 inline-flex items-center gap-1 bg-white px-2 py-1 rounded-md">
+              <i class="fa-solid fa-tag"></i> 
+              <span>{{ product.category.name }}</span>
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Existing Review Notice -->
+      {% if existing_review %}
+      <div class="mx-6 mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-circle-info text-amber-600 text-lg mt-0.5"></i>
+          <div class="flex-1">
+            <p class="font-semibold text-amber-900 mb-1">You've already reviewed this product</p>
+            <p class="text-sm text-amber-800">You can update your review below. Your previous rating and comments have been pre-filled.</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Form -->
+      <form method="POST" class="p-6 sm:p-8">
+        {% csrf_token %}
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-6">
+          {% for message in messages %}
+          <div class="flex items-start gap-3 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% elif message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
+            <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %} text-lg mt-0.5"></i>
+            <p class="flex-1">{{ message }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Rating -->
+        <div class="mb-8">
+          <label class="block text-base font-semibold text-gray-900 mb-3">
+            Your Rating <span class="text-red-500">*</span>
+          </label>
+          <div class="star-rating">
+            <input type="radio" name="rating" value="5" id="star5" {% if rating == 5 %}checked{% endif %} required>
+            <label for="star5" title="5 stars">★</label>
+            
+            <input type="radio" name="rating" value="4" id="star4" {% if rating == 4 %}checked{% endif %}>
+            <label for="star4" title="4 stars">★</label>
+            
+            <input type="radio" name="rating" value="3" id="star3" {% if rating == 3 %}checked{% endif %}>
+            <label for="star3" title="3 stars">★</label>
+            
+            <input type="radio" name="rating" value="2" id="star2" {% if rating == 2 %}checked{% endif %}>
+            <label for="star2" title="2 stars">★</label>
+            
+            <input type="radio" name="rating" value="1" id="star1" {% if rating == 1 %}checked{% endif %}>
+            <label for="star1" title="1 star">★</label>
+          </div>
+          <p class="text-sm text-gray-500 mt-2" id="rating-feedback">
+            {% if rating %}
+              <span class="font-medium text-gray-700">You selected {{ rating }} star{{ rating|pluralize }}</span>
+            {% else %}
+              Click on a star to rate this product
+            {% endif %}
+          </p>
+        </div>
+
+        <!-- Comment -->
+        <div class="mb-8">
+          <label for="comment" class="block text-base font-semibold text-gray-900 mb-3">
+            Your Review <span class="text-gray-400 text-sm font-normal">(Optional)</span>
+          </label>
+          <textarea 
+            name="comment" 
+            id="comment" 
+            rows="6"
+            placeholder="Tell us about your experience with this product..."
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all resize-none text-gray-900 placeholder-gray-400"
+          >{{ comment }}</textarea>
+          <div class="flex items-start gap-2 text-sm text-gray-500 mt-2">
+            <i class="fa-solid fa-lightbulb mt-0.5"></i> 
+            <p>Share details about quality, features, and your overall experience</p>
+          </div>
+        </div>
+
+        <!-- Guidelines -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h3 class="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-circle-info"></i>
+            Review Guidelines
+          </h3>
+          <ul class="text-sm text-blue-800 space-y-1 ml-6 list-disc">
+            <li>Be honest and detailed about your experience</li>
+            <li>Focus on the product's features and performance</li>
+            <li>Keep your review respectful and appropriate</li>
+            <li>You can only submit one review per product</li>
+          </ul>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button 
+            type="submit" 
+            class="flex-1 sm:flex-none px-8 py-3 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-paper-plane"></i>
+            {% if existing_review %}Update Review{% else %}Submit Review{% endif %}
+          </button>
+          
+          {% if order_number %}
+          <a 
+            href="{% url 'customer_order_detail' order_number %}" 
+            class="flex-1 sm:flex-none px-8 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all duration-200 text-center">
+            Cancel
+          </a>
+          {% else %}
+          <a 
+            href="{% url 'customer_orders' %}" 
+            class="flex-1 sm:flex-none px-8 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all duration-200 text-center">
+            Cancel
+          </a>
+          {% endif %}
+        </div>
+      </form>
+
+    </div>
+
+    <!-- Existing Reviews Section -->
+    {% if existing_reviews %}
+    <div class="mt-8 bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-comments"></i>
+        Other Customer Reviews ({{ existing_reviews|length }})
+      </h3>
+      
+      <div class="space-y-4">
+        {% for review in existing_reviews|slice:":3" %}
+        <div class="border-b border-gray-200 pb-4 last:border-0 last:pb-0">
+          <div class="flex items-start gap-3 mb-2">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] text-white flex items-center justify-center font-bold text-lg shadow-md flex-shrink-0">
+              {{ review.user.username|slice:":1"|upper }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 mb-1">
+                <p class="font-semibold text-gray-900">{{ review.user.username }}</p>
+                <span class="text-gray-300">•</span>
+                <span class="text-xs text-gray-500">{{ review.created_at|date:"M d, Y" }}</span>
+              </div>
+              <div class="flex items-center gap-1 text-yellow-400">
+                {% for i in "12345" %}
+                  {% if forloop.counter <= review.rating %}
+                    <i class="fa-solid fa-star text-sm"></i>
+                  {% else %}
+                    <i class="fa-regular fa-star text-sm"></i>
+                  {% endif %}
+                {% endfor %}
+                <span class="text-xs text-gray-600 ml-1">({{ review.rating }}/5)</span>
+              </div>
+            </div>
+          </div>
+          {% if review.comment %}
+          <p class="text-sm text-gray-700 leading-relaxed ml-13 mt-2">{{ review.comment }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+  // Add visual feedback for star selection
+  document.querySelectorAll('.star-rating input').forEach(input => {
+    input.addEventListener('change', function() {
+      const rating = this.value;
+      const feedbackElement = document.getElementById('rating-feedback');
+      feedbackElement.innerHTML = `<span class="font-medium text-gray-700">You selected ${rating} star${rating > 1 ? 's' : ''}</span>`;
+    });
+  });
+
+  // Initialize rating display on page load if rating exists
+  window.addEventListener('DOMContentLoaded', function() {
+    const checkedInput = document.querySelector('.star-rating input:checked');
+    if (checkedInput) {
+      const rating = checkedInput.value;
+      document.getElementById('rating-feedback').innerHTML = `<span class="font-medium text-gray-700">You selected ${rating} star${rating > 1 ? 's' : ''}</span>`;
+    }
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="p-6 bg-gray-100 min-h-screen">
+
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+      <i class="fas fa-wallet text-blue-600"></i> Payout Requests
+    </h2>
+    <a href="{% url 'restaurant_payout_requests_add' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 shadow flex items-center gap-2">
+      <i class="fas fa-plus"></i> Request Payout
+    </a>
+  </div>
+
+  <!-- Totals Summary -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow p-4 flex items-center justify-between">
+      <div>
+        <p class="text-gray-500 text-sm">Total Requested</p>
+        <p class="text-2xl font-bold text-gray-800">Rs {{ totals.total_requested|floatformat:2 }}</p>
+      </div>
+      <i class="fas fa-hand-holding-usd text-green-500 text-3xl"></i>
+    </div>
+    <div class="bg-white rounded-xl shadow p-4 flex items-center justify-between">
+      <div>
+        <p class="text-gray-500 text-sm">Total Paid</p>
+        <p class="text-2xl font-bold text-gray-800">Rs {{ totals.total_paid|floatformat:2 }}</p>
+      </div>
+      <i class="fas fa-money-bill-wave text-blue-500 text-3xl"></i>
+    </div>
+  </div>
+
+  <!-- Filter Form -->
+  <div class="bg-white rounded-xl shadow p-4 mb-6">
+    <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="flex items-center">
+        <i class="fas fa-search text-gray-400 absolute ml-3"></i>
+        <input type="text" name="search" placeholder="Search payout requests..." value="{{ search }}" class="rounded-lg border-gray-300 px-10 py-2 w-full">
+      </div>
+      <select name="status" class="rounded-lg border-gray-300 px-3 py-2 w-full">
+        <option value="">All Status</option>
+        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+        <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
+      </select>
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2">
+        <i class="fas fa-filter"></i> Filter
+      </button>
+    </form>
+  </div>
+
+  <!-- Payout Requests Table -->
+  <div class="bg-white rounded-xl shadow overflow-x-auto p-4">
+    <table id="payoutRequestsTable" class="w-full text-sm table-auto">
+      <thead class="bg-gray-50 text-gray-700 uppercase text-xs">
+        <tr>
+          <th class="px-4 py-2">Requested At</th>
+          <th class="px-4 py-2">Amount (Rs)</th>
+          <th class="px-4 py-2">Status</th>
+          <th class="px-4 py-2">Admin Response</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pr in payout_requests %}
+        <tr class="border-b hover:bg-gray-50">
+          <td class="px-4 py-2"><i class="far fa-calendar-alt text-gray-400 mr-2"></i>{{ pr.created_at|date:"M d, Y h:i A" }}</td>
+          <td class="px-4 py-2 font-medium text-gray-800">Rs {{ pr.requested_amount|floatformat:2 }}</td>
+          <td class="px-4 py-2">
+            <span class="px-2 py-1 rounded-full text-xs font-semibold
+              {% if pr.status == 'pending' %}bg-yellow-100 text-yellow-800
+              {% elif pr.status == 'rejected' %}bg-red-100 text-red-800
+              {% elif pr.status == 'paid' %}bg-green-100 text-green-800
+              {% endif %}">
+              {% if pr.status == 'pending' %}<i class="fas fa-hourglass-half mr-1"></i>{% endif %}
+              {% if pr.status == 'rejected' %}<i class="fas fa-times-circle mr-1"></i>{% endif %}
+              {% if pr.status == 'paid' %}<i class="fas fa-check-circle mr-1"></i>{% endif %}
+              {{ pr.get_status_display }}
+            </span>
+          </td>
+          <td class="px-4 py-2 text-gray-600">{{ pr.admin_response|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center py-4 text-gray-500">No payout requests found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  $(document).ready(function() {
+    $('#payoutRequestsTable').DataTable({
+      pageLength: 10,
+      lengthChange: true,
+      searching: true,
+      ordering: true,
+      responsive: true,
+      language: {
+        search: "_INPUT_",
+        searchPlaceholder: "Search payout requests..."
+      },
+      columnDefs: [
+        { orderable: false, targets: [] } // No actions column here
+      ],
+      order: [[0, 'desc']] // Default sort by Requested At
+    });
+  });
+</script>
+{% endblock %}

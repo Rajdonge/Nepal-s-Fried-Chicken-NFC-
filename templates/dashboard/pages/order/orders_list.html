@@ -1,0 +1,339 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+
+<style>
+  .product-preview {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    margin-bottom: 6px;
+  }
+  .product-preview:last-child {
+    margin-bottom: 0;
+  }
+  .product-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+  }
+  .product-info {
+    flex: 1;
+    min-width: 0;
+  }
+  /* .product-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f2937;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  } */
+  .product-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2937;
+  }
+  .product-meta {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+  .variant-badge {
+    display: inline-block;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    color: #4b5563;
+    margin-right: 4px;
+    margin-top: 2px;
+  }
+  .more-items {
+    font-size: 11px;
+    color: #6b7280;
+    font-style: italic;
+    margin-top: 4px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-shopping-cart"></i> Orders</h1>
+    <a href="#" class="opacity-60 cursor-not-allowed text-sm">Add Order (disabled)</a>
+  </div>
+
+  <form method="get" class="mb-4 grid grid-cols-1 md:grid-cols-5 gap-4">
+    <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search #, name, email, phone" class="border border-gray-300 rounded-lg p-2.5" />
+    
+    <select name="status" class="border border-gray-300 rounded-lg p-2.5">
+      <option value="">All Status</option>
+      {% for value,label in order_model.STATUS_CHOICES %}
+        <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    
+    <select name="payment_status" class="border border-gray-300 rounded-lg p-2.5">
+      <option value="">All Payment</option>
+      {% for value,label in order_model.PAYMENT_STATUS_CHOICES %}
+        <option value="{{ value }}" {% if request.GET.payment_status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    
+    {% comment %} <select name="city" class="border border-gray-300 rounded-lg p-2.5">
+  <option value="">All Districts</option>
+  {% for c in cities %}
+    <option value="{{ c }}" {% if selected_city == c %}selected{% endif %}>{{ c }}</option>
+  {% endfor %}
+</select> {% endcomment %}
+
+    <div>
+      <button class="bg-gray-800 text-white px-4 py-2 rounded-lg w-full">Filter</button>
+    </div>
+  </form>
+
+  <div class="overflow-x-auto">
+    <table id="ordersTable" class="display w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Products</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th>Est. Delivery</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <!-- Order Number -->
+          <td>
+            <span class="font-semibold text-gray-900">{{ order.order_number }}</span>
+            <div class="text-xs text-gray-500">{{ order.city }}</div>
+            <div class="text-xs text-gray-500">
+              {% for item in order.items.all %}
+                {% if forloop.first %}
+                (
+                  {{ item.menu_item.restaurant.restaurant_name }}
+                )
+                {% endif %}
+              {% endfor %}
+            </div>
+
+          </td>
+          
+          <!-- Customer -->
+          <td>
+            <div class="font-medium text-gray-900">{{ order.full_name }}</div>
+            <div class="text-xs text-gray-500">{{ order.email }}</div>
+            <div class="text-xs text-gray-500">{{ order.phone }}</div>
+          </td>
+          
+          <!-- Products with Images -->
+          <td style="max-width: 300px;">
+            {% with order.items.all as items %}
+              {% for item in items|slice:":2" %}
+              <div class="product-preview">
+                {% if item.menu_item.image %}
+                <img src="{{ item.menu_item.image.url }}" 
+                     alt="{{ item.menu_item.name }}" 
+                     class="product-img">
+                {% else %}
+                <div class="product-img bg-gray-200 flex items-center justify-center">
+                  <i class="fas fa-image text-gray-400 text-xs"></i>
+                </div>
+                {% endif %}
+                <div class="product-info">
+                  <div class="product-name">{{ item.menu_item.name }}</div>
+                  <div class="product-meta">
+                    Qty: {{ item.quantity }} × Rs {{ item.price|floatformat:0 }}
+                  </div>
+                  <!-- Display Options -->
+                  {% if item.options.all %}
+                  <div>
+                    {% for option in item.options.all %}
+                    <span class="variant-badge">{{ option.name }}</span>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+              {% if items.count > 2 %}
+              <div class="more-items">
+                + {{ items.count|add:"-2" }} more item{{ items.count|add:"-2"|pluralize }}
+              </div>
+              {% endif %}
+            {% endwith %}
+          </td>
+          
+          <!-- Total Items -->
+          <td class="text-center">
+            <span class="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full font-semibold text-xs">
+              {{ order.items.count }}
+            </span>
+          </td>
+          
+          <!-- Total Price -->
+          <td>
+            <span class="font-bold text-gray-900">Rs {{ order.total|floatformat:0 }}</span>
+          </td>
+          
+          <!-- Payment Status -->
+          <td>
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold
+              {% if order.payment_status == 'paid' %}bg-green-100 text-green-800
+              {% elif order.payment_status == 'unpaid' %}bg-yellow-100 text-yellow-800
+              {% elif order.payment_status == 'failed' %}bg-red-100 text-red-800
+              {% elif order.payment_status == 'refunded' %}bg-gray-100 text-gray-800
+              {% endif %}">
+              {% for value,label in order_model.PAYMENT_STATUS_CHOICES %}
+                {% if order.payment_status == value %}{{ label }}{% endif %}
+              {% endfor %}
+            </span>
+          </td>
+          
+          <!-- Order Status -->
+          <td>
+            <select class="status-select border border-gray-300 rounded-lg p-2 text-xs font-medium
+              {% if order.status == 'pending' %}bg-yellow-50 text-yellow-800
+              {% elif order.status == 'processing' %}bg-blue-50 text-blue-800
+              {% elif order.status == 'shipped' %}bg-indigo-50 text-indigo-800
+              {% elif order.status == 'delivered' %}bg-green-50 text-green-800
+              {% elif order.status == 'cancelled' %}bg-red-50 text-red-800
+              {% endif %}" 
+              data-id="{{ order.order_number }}">
+              {% for value,label in order_model.STATUS_CHOICES %}
+                <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          
+          <!-- Estimated Delivery -->
+          <td>
+            {% if order.estimated_delivery_date %}
+              <span class="text-xs">{{ order.estimated_delivery_date|date:"M d, Y" }}</span>
+            {% else %}
+              <span class="text-xs text-gray-400">Not set</span>
+            {% endif %}
+          </td>
+          
+          <!-- Created Date -->
+          <td data-order="{{ order.created_at.timestamp|default:0 }}">
+            <div class="text-xs">{{ order.created_at|date:"M d, Y" }}</div>
+            <div class="text-xs text-gray-500">{{ order.created_at|date:"h:i A" }}</div>
+          </td>
+          
+          <!-- Actions -->
+          <td class="text-center">
+            <div class="flex justify-center gap-2">
+              <!-- View Details -->
+              <a href="{% url 'admin_order_details' order.order_number %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" 
+                 class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                 title="View Details">
+                <i class="fa-solid fa-eye"></i>
+              </a>
+              
+              <!-- View Invoices -->
+              <a href="{% url 'admin_orders_invoice_list' order.order_number %}{% if request.GET %}?{{ request.GET.urlencode }}&next={{ request.get_full_path|urlencode }}{% else %}?next={{ request.get_full_path|urlencode }}{% endif %}" 
+                 class="inline-flex items-center justify-center w-8 h-8 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                 title="View Invoices">
+                <i class="fa-solid fa-file-invoice"></i>
+              </a>
+              
+              <!-- Delete -->
+              <a href="{% url 'admin_order_delete' order.order_number %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" 
+                 class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                 onclick="return confirm('Delete this order and all related data?')"
+                 title="Delete Order">
+                <i class="fa-solid fa-trash"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+ =
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#ordersTable').DataTable({
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50],
+        ordering: true,
+        order: [[8, 'desc']], // Default sorting by Created date
+        columnDefs: [
+            { orderable: false, targets: [2, 9] }, // Products and Actions columns not sortable
+            { width: '300px', targets: 2 } // Fixed width for products column
+        ],
+        searching: false,
+        language: {
+            lengthMenu: "Show _MENU_ orders",
+            info: "Showing _START_ to _END_ of _TOTAL_ orders",
+            emptyTable: "No orders available"
+        }
+    });
+});
+
+// AJAX for status change
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+$(document).on('change', '.status-select', function(){
+    const $select = $(this);
+    const orderNumber = $select.data('id');
+    const status = $select.val();
+    const originalValue = $select.find('option:selected').data('original') || $select.val();
+    
+    // Disable select during request
+    $select.prop('disabled', true);
+
+    $.ajax({
+        url: `{% url 'admin_order_change_status' 'ORD00000000000000' %}`.replace('ORD00000000000000', orderNumber),
+        type: 'POST',
+        data: { status },
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        success: function(resp){
+            if (resp.success) {
+                // Show success message
+                toastr.success('Order status updated successfully');
+                // Reload page to reflect changes
+                setTimeout(() => location.reload(), 500);
+            } else {
+                toastr.error(resp.message || 'Failed to update order status');
+                $select.val(originalValue);
+                $select.prop('disabled', false);
+            }
+        },
+        error: function(xhr){
+            toastr.error('Server error updating order');
+            $select.val(originalValue);
+            $select.prop('disabled', false);
+        }
+    });
+});
+</script>
+{% endblock %}

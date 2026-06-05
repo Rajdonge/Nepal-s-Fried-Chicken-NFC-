@@ -1,0 +1,904 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}{{ menu_item.name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ==========================================
+     IMAGE MAGNIFIER
+     ========================================== */
+  .image-magnifier-container {
+    position: relative;
+    overflow: hidden;
+    cursor: none;
+  }
+
+  .magnifier-glass {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border: 4px solid #FF7F00;
+    border-radius: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    background-repeat: no-repeat;
+    background-color: white;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    transform: translateZ(0);
+    overflow: hidden;
+  }
+
+  .magnifier-glass.active {
+    opacity: 1;
+  }
+
+  /* Hide magnifier on small screens */
+  @media (max-width: 1024px) {
+    .magnifier-glass {
+      display: none !important;
+    }
+  }
+
+  /* ==========================================
+     THUMBNAIL STYLES
+     ========================================== */
+  .thumbnail-item {
+    transition: all 0.25s ease;
+    border: 2px solid transparent;
+  }
+
+  .thumbnail-item:hover {
+    transform: scale(1.05);
+    border-color: #FF7F00;
+  }
+
+  .thumbnail-item.active {
+    border-color: #FF7F00 !important;
+    border-width: 2px !important;
+    transform: scale(1.05);
+  }
+
+  /* ==========================================
+     MAIN IMAGE FADE
+     ========================================== */
+  #mainImage {
+    transition: opacity 0.3s ease;
+  }
+
+  /* ==========================================
+     TAB STYLING
+     ========================================== */
+  .product-tab {
+    color: #6b7280;
+    border-bottom-width: 3px;
+  }
+
+  .product-tab.active {
+    color: #FF7F00;
+    border-bottom-color: #FF7F00;
+    background-color: white;
+  }
+
+  .tab-content {
+    animation: fadeIn 0.3s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ==========================================
+     PRODUCT DESCRIPTION STYLING
+     ========================================== */
+  .product-description {
+    line-height: 1.8;
+  }
+
+  .product-description p {
+    margin-bottom: 1rem;
+  }
+
+  .product-description h3,
+  .product-description h4 {
+    font-weight: 600;
+    color: #1f2937;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .product-description ul,
+  .product-description ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .product-description ul {
+    list-style: disc !important;
+  }
+
+  .product-description ol {
+    list-style: decimal !important;
+  }
+
+  .product-description li {
+    margin-bottom: 0.5rem;
+    padding-left: 0.25rem;
+  }
+
+  .product-description strong {
+    color: #1f2937;
+    font-weight: 600;
+  }
+
+  .product-description a {
+    color: #FF7F00;
+    text-decoration: underline;
+  }
+
+  .product-description a:hover {
+    color: #e67300;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-7xl">
+
+  <!-- Breadcrumb -->
+  <nav class="hidden md:flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-2 text-sm">
+      <li>
+        <a href="{% url 'home' %}" class="text-gray-600 hover:text-[#FF7F00] transition-colors">
+          <i class="fas fa-home mr-1"></i>Home
+        </a>
+      </li>
+      <li class="text-gray-400">/</li>
+      <li>
+        <a href="{% url 'all_collections' %}" class="text-gray-600 hover:text-[#FF7F00] transition-colors">Menu Items</a>
+      </li>
+      {% if menu_item.section %}
+      <li class="text-gray-400">/</li>
+      <li>
+        <span class="text-gray-600">{{ menu_item.section.name }}</span>
+      </li>
+      {% endif %}
+      <li class="text-gray-400">/</li>
+      <li>
+        <span class="text-gray-900 font-medium">{{ menu_item.name }}</span>
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Product Main Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
+
+    <!-- Product Images -->
+    <div class="space-y-4">
+      <!-- Main Image with Magnifier -->
+      <div class="relative aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden image-magnifier-container" 
+           id="imageContainer">
+        <img src="{{ menu_item.image.url }}" 
+             alt="{{ menu_item.name }}" 
+             class="w-full h-full object-contain p-8 transition-opacity duration-400"
+             id="mainImage">
+        <div class="magnifier-glass" id="magnifierGlass"></div>
+      </div>
+      
+      <!-- Thumbnails -->
+      <div class="grid grid-cols-5 gap-3">
+        <div class="thumbnail-item active aspect-square bg-white rounded-lg border-2 border-gray-300 overflow-hidden cursor-pointer" 
+             data-src="{{ menu_item.image.url }}">
+          <img src="{{ menu_item.image.url }}" 
+               alt="{{ menu_item.name }}" 
+               class="w-full h-full object-contain p-3">
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Info Card -->
+    <div class="bg-white shadow-lg rounded-xl p-6 max-w-xl mx-auto space-y-4">
+
+      <!-- Title & Restaurant -->
+      <div>
+        <h1 class="text-xl sm:text-3xl lg:text-2xl font-medium text-gray-900 mb-2">
+          {{ menu_item.name }}
+        </h1>
+        <a href="{% url 'restaurant_details' menu_item.restaurant.slug %}" 
+           class="inline-flex items-center text-sm text-gray-600 hover:text-[#FF7F00] transition-colors group">
+          <i class="fas fa-store mr-2 group-hover:scale-110 transition-transform"></i>
+          {{ menu_item.restaurant.restaurant_name }}
+        </a>
+      </div>
+
+      <!-- Rating & Stats -->
+      <div class="flex items-center justify-between gap-6 py-3 border-t border-b border-gray-200">
+        <div class="flex items-center gap-2 text-gray-700">
+          <div class="flex items-center gap-1">
+            {% for i in "12345" %}
+              {% if forloop.counter <= menu_item.average_rating %}
+                <i class="fas fa-star text-yellow-500 text-sm"></i>
+              {% elif forloop.counter|add:-1 < menu_item.average_rating %}
+                <i class="fas fa-star-half-alt text-yellow-500 text-sm"></i>
+              {% else %}
+                <i class="far fa-star text-gray-300 text-sm"></i>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <span class="text-sm">({{ menu_item.reviews.count }} reviews)</span>
+        </div>
+        <div class="flex items-center gap-1 text-gray-400 text-sm">
+          <i class="far fa-eye"></i> 
+          <span>{{ menu_item.views_count }} views</span>
+        </div>
+      </div>
+
+      <!-- Price -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4 gap-2">
+        <span class="text-2xl sm:text-3xl font-bold text-gray-900">
+          Rs {{ menu_item.price|floatformat:0 }}
+        </span>
+      </div>
+
+      <!-- Menu Item Info -->
+      <div class="mt-4 p-5 bg-gray-50/70 border border-gray-200 rounded-xl">
+        <div class="space-y-4 text-sm text-gray-700">
+
+          <!-- Preparation Time -->
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <i class="fas fa-clock text-gray-500 text-base"></i>
+              <span class="font-medium">Prep Time</span>
+            </div>
+            <span class="font-semibold text-gray-900">{{ menu_item.prep_time }} mins</span>
+          </div>
+
+          <!-- Dietary Info -->
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              {% if menu_item.is_vegetarian %}
+                <i class="fas fa-leaf text-green-600 text-base"></i>
+                <span class="font-medium">Vegetarian</span>
+              {% else %}
+                <i class="fas fa-drumstick-bite text-red-600 text-base"></i>
+                <span class="font-medium">Non-Vegetarian</span>
+              {% endif %}
+            </div>
+            <i class="fas fa-check text-green-600"></i>
+          </div>
+
+          <!-- Menu Section -->
+          {% if menu_item.section %}
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <i class="fas fa-list text-gray-500 text-base"></i>
+              <span class="font-medium">Menu Section</span>
+            </div>
+            <span class="font-semibold text-gray-900">{{ menu_item.section.name }}</span>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <!-- Availability Status -->
+      <div>
+        {% if menu_item.is_available %}
+          <span class="inline-flex items-center gap-2 text-green-700 font-medium bg-green-50 px-3 py-1 rounded-full shadow-sm text-sm">
+            <i class="fas fa-check-circle"></i> Available Now
+          </span>
+        {% else %}
+          <span class="inline-flex items-center gap-2 text-red-700 font-medium bg-red-50 px-3 py-1 rounded-full shadow-sm text-sm">
+            <i class="fas fa-times-circle"></i> Not Available
+          </span>
+        {% endif %}
+      </div>
+
+      <!-- Product Variants -->
+      {% if menu_item.dietary_tags.all %}
+      <div class="space-y-3">
+        <h3 class="text-sm sm:text-base font-semibold text-gray-900 uppercase tracking-wide">
+          Dietary Tags
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {% for tag in menu_item.dietary_tags.all %}
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+              <i class="fas fa-tag mr-1"></i> {{ tag.name }}
+            </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Quantity & Actions -->
+      <div class="space-y-4 pt-4">
+        <div class="flex items-center gap-2">
+          <label class="text-sm font-semibold text-gray-700 w-20">Quantity</label>
+          <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
+            <button class="decreaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 text-sm transition" {% if not menu_item.is_available %}disabled{% endif %}>
+              <i class="fas fa-minus text-xs"></i>
+            </button>
+            <input type="number" value="1" min="1" max="10" 
+                   class="qtyInput w-12 text-center text-sm border-x-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset font-medium text-gray-900" {% if not menu_item.is_available %}disabled{% endif %}>
+            <button class="increaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 text-sm transition" {% if not menu_item.is_available %}disabled{% endif %}>
+              <i class="fas fa-plus text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button class="add-to-cart flex-1 flex items-center justify-center gap-1 text-sm px-3 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 active:bg-orange-700 transition shadow-sm hover:shadow-md font-medium cursor-pointer"
+                  data-product-id="{{ menu_item.id }}" 
+                  data-product-name="{{ menu_item.name }}" 
+                  {% if not menu_item.is_available %}disabled{% endif %}>
+            <i class="fa-solid fa-cart-shopping text-sm"></i>
+            <span>Add to Cart</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Product Tabs Section -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-16">
+    
+    <!-- Tab Navigation -->
+    <div class="border-b border-gray-200 bg-gray-50">
+      <nav class="flex overflow-x-auto" aria-label="Product tabs">
+        <button class="product-tab active flex-shrink-0 px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent hover:text-[#FF7F00] hover:border-[#FF7F00] transition-all whitespace-nowrap cursor-pointer" data-tab="description">
+          <i class="fas fa-align-left mr-1 sm:mr-2"></i>Description
+        </button>
+        
+        <button class="product-tab flex-shrink-0 px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent hover:text-[#FF7F00] hover:border-[#FF7F00] transition-all whitespace-nowrap cursor-pointer" data-tab="specifications">
+          <i class="fas fa-list-ul mr-1 sm:mr-2"></i>Specifications
+        </button>
+        
+        {% if reviews %}
+        <button class="product-tab flex-shrink-0 px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent hover:text-[#FF7F00] hover:border-[#FF7F00] transition-all whitespace-nowrap cursor-pointer" data-tab="reviews">
+          <i class="fas fa-star mr-1 sm:mr-2"></i>Reviews <span class="ml-1 bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">({{ reviews|length }})</span>
+        </button>
+        {% endif %}
+      </nav>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="p-6 sm:p-8">
+      
+      <!-- Description Tab -->
+      <div class="tab-content active" id="description-tab">
+        <div class="max-w-5xl">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+            <span class="w-1 h-6 sm:h-8 bg-[#FF7F00] rounded-full"></span>
+            Menu Item Description
+          </h2>
+          
+          <div class="product-description max-w-none text-gray-700 text-sm">
+            {{ menu_item.description|safe }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Specifications Tab -->
+      <div class="tab-content hidden" id="specifications-tab">
+        <div class="max-w-4xl">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+            <span class="w-1 h-6 sm:h-8 bg-[#FF7F00] rounded-full"></span>
+            Menu Item Information
+          </h2>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            
+            <!-- Left Column -->
+            <div class="space-y-3 sm:space-y-4">
+              <div class="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs sm:text-sm font-medium text-gray-600">
+                    <i class="fas fa-leaf mr-1 sm:mr-2 text-[#FF7F00]"></i>Type
+                  </span>
+                  <span class="text-sm sm:text-base font-bold text-gray-900">
+                    {% if menu_item.is_vegetarian %}Vegetarian{% else %}Non-Vegetarian{% endif %}
+                  </span>
+                </div>
+              </div>
+
+              <div class="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs sm:text-sm font-medium text-gray-600">
+                    <i class="fas fa-clock mr-1 sm:mr-2 text-[#FF7F00]"></i>Prep Time
+                  </span>
+                  <span class="text-sm sm:text-base font-bold text-gray-900">{{ menu_item.prep_time }} mins</span>
+                </div>
+              </div>
+
+              {% if menu_item.section %}
+              <div class="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs sm:text-sm font-medium text-gray-600">
+                    <i class="fas fa-list mr-1 sm:mr-2 text-[#FF7F00]"></i>Menu Section
+                  </span>
+                  <span class="text-sm sm:text-base font-bold text-gray-900">{{ menu_item.section.name }}</span>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-3 sm:space-y-4">
+              <div class="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs sm:text-sm font-medium text-gray-600">
+                    <i class="fas fa-utensils mr-1 sm:mr-2 text-[#FF7F00]"></i>Availability
+                  </span>
+                  {% if menu_item.is_available %}
+                    <span class="text-sm font-bold text-green-600 flex items-center gap-1">
+                      <i class="fas fa-check-circle text-sm"></i>Available
+                    </span>
+                  {% else %}
+                    <span class="text-sm font-bold text-red-600 flex items-center gap-1">
+                      <i class="fas fa-times-circle text-sm"></i>Not Available
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs sm:text-sm font-medium text-gray-600">
+                    <i class="fas fa-store mr-1 sm:mr-2 text-[#FF7F00]"></i>Restaurant
+                  </span>
+                  <a href="{% url 'restaurant_details' menu_item.restaurant.slug %}" class="text-sm sm:text-base font-bold text-[#FF7F00] hover:underline">
+                    {{ menu_item.restaurant.restaurant_name }}
+                  </a>
+                </div>
+              </div>
+
+              {% if menu_item.dietary_tags.all %}
+              <div class="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                <span class="text-xs sm:text-sm font-medium text-gray-600 block mb-2">
+                  <i class="fas fa-tags mr-1 sm:mr-2 text-[#FF7F00]"></i>Dietary Tags
+                </span>
+                <div class="flex flex-wrap gap-1">
+                  {% for tag in menu_item.dietary_tags.all %}
+                  <span class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2 py-1 rounded-full">{{ tag.name }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews Tab -->
+      {% if reviews %}
+      <div class="tab-content hidden" id="reviews-tab">
+        <div class="max-w-5xl">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 sm:gap-0">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <span class="w-1 h-6 sm:h-8 bg-[#FF7F00] rounded-full"></span>
+              Customer Reviews
+            </h2>
+            
+            <!-- Review Summary -->
+            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 sm:px-6 sm:py-3 rounded-lg border border-gray-200 text-xs sm:text-sm">
+              <div class="text-center">
+                <div class="text-lg sm:text-2xl font-bold text-gray-900">{{ menu_item.average_rating|floatformat:1 }}</div>
+                <div class="flex items-center gap-1 mt-1">
+                  {% for i in "12345" %}
+                    {% if forloop.counter <= menu_item.average_rating %}
+                      <i class="fas fa-star text-yellow-500 text-xs sm:text-sm"></i>
+                    {% elif forloop.counter|add:-1 < menu_item.average_rating %}
+                      <i class="fas fa-star-half-alt text-yellow-500 text-xs sm:text-sm"></i>
+                    {% else %}
+                      <i class="far fa-star text-gray-300 text-xs sm:text-sm"></i>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                <div class="text-xs text-gray-500 mt-1">{{ reviews|length }} reviews</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reviews List -->
+          <div class="space-y-3 sm:space-y-4">
+            {% for review in reviews %}
+            <article class="bg-gray-50 border border-gray-200 rounded-xl p-4 sm:p-6 hover:shadow-sm transition-shadow">
+              <div class="flex items-start gap-3 sm:gap-4">
+                
+                <!-- Avatar -->
+                <div class="flex-shrink-0">
+                  <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#FF7F00] to-[#FF9933] rounded-full flex items-center justify-center shadow-sm">
+                    <span class="text-white font-bold text-sm sm:text-lg">{{ review.user.username|first|upper }}</span>
+                  </div>
+                </div>
+
+                <!-- Review Content -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between mb-2 sm:mb-3">
+                    <div>
+                      <h4 class="font-bold text-gray-900 text-sm sm:text-base">{{ review.user.username }}</h4>
+                      <div class="flex items-center gap-1 mt-1">
+                        <div class="flex items-center gap-0.5">
+                          {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}
+                              <i class="fas fa-star text-yellow-500 text-xs sm:text-sm"></i>
+                            {% else %}
+                              <i class="far fa-star text-gray-300 text-xs sm:text-sm"></i>
+                            {% endif %}
+                          {% endfor %}
+                        </div>
+                        <span class="text-xs text-gray-400">•</span>
+                        <time class="text-xs text-gray-500">{{ review.created_at|date:"F d, Y" }}</time>
+                      </div>
+                    </div>
+                    
+                    <span class="flex-shrink-0 inline-flex items-center gap-1 bg-green-50 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                      <i class="fas fa-check-circle text-xs"></i>
+                      Verified
+                    </span>
+                  </div>
+
+                  {% if review.comment %}
+                  <p class="text-gray-700 text-xs sm:text-sm leading-relaxed">{{ review.comment }}</p>
+                  {% endif %}
+
+                </div>
+
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+
+          {% if reviews|length > 5 %}
+          <div class="text-center mt-6 sm:mt-8">
+            <button class="px-4 sm:px-6 py-2 sm:py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium">
+              Load More Reviews
+            </button>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <!-- Full Width Simple Banner Section -->
+<section class="mt-26 w-[90%] mx-auto">
+  <div class="w-full overflow-hidden">
+    {% if banners %}
+      {% for banner in banners %}
+        {% if banner.link %}
+          <a href="{{ banner.link }}" target="_blank">
+            <img
+              src="{{ banner.image.url }}"
+              alt="{{ banner.title|default:'Offer' }}"
+              class="w-full h-auto object-cover rounded-xl"
+            />
+          </a>
+        {% else %}
+          <img
+            src="{{ banner.image.url }}"
+            alt="{{ banner.title|default:'Offer' }}"
+            class="w-full h-auto object-cover rounded-xl"
+          />
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </div>
+</section>
+
+
+</section>
+
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ==========================================
+// DOCUMENT READY
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+
+  // ==========================================
+  // IMAGE MAGNIFIER
+  // ==========================================
+  const container = document.getElementById('imageContainer');
+  const mainImage = document.getElementById('mainImage');
+  const glass = document.getElementById('magnifierGlass');
+  const thumbnails = document.querySelectorAll('.thumbnail-item');
+
+  let currentImageSrc = mainImage.src;
+
+  // Update main image when thumbnail is clicked
+  thumbnails.forEach(thumb => {
+    thumb.addEventListener('click', function() {
+      const newSrc = this.getAttribute('data-src');
+
+      // Update active thumbnail
+      thumbnails.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+
+      // Fade out, change src, fade in
+      mainImage.style.opacity = '0.5';
+      setTimeout(() => {
+        mainImage.src = newSrc;
+        currentImageSrc = newSrc;
+        mainImage.style.opacity = '1';
+      }, 200);
+    });
+  });
+
+  // Magnifier functionality
+  function magnify(e) {
+    if (window.innerWidth <= 1024) return;
+
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    glass.classList.add('active');
+
+    glass.style.left = (x - glass.offsetWidth / 2) + 'px';
+    glass.style.top = (y - glass.offsetHeight / 2) + 'px';
+
+    const zoom = 2.5;
+    const bgX = -(x * zoom - glass.offsetWidth / 2);
+    const bgY = -(y * zoom - glass.offsetHeight / 2);
+
+    glass.style.backgroundImage = `url('${currentImageSrc}')`;
+    glass.style.backgroundSize = `${container.offsetWidth * zoom}px ${container.offsetHeight * zoom}px`;
+    glass.style.backgroundPosition = `${bgX}px ${bgY}px`;
+  }
+
+  container.addEventListener('mousemove', magnify);
+  container.addEventListener('mouseenter', function() {
+    if (window.innerWidth > 1024) {
+      glass.classList.add('active');
+    }
+  });
+  container.addEventListener('mouseleave', function() {
+    glass.classList.remove('active');
+  });
+  container.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+  });
+
+  // ==========================================
+  // TAB SWITCHING
+  // ==========================================
+  const tabs = document.querySelectorAll('.product-tab');
+  const contents = document.querySelectorAll('.tab-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      const targetTab = this.getAttribute('data-tab');
+
+      tabs.forEach(t => t.classList.remove('active'));
+      contents.forEach(c => {
+        c.classList.remove('active');
+        c.classList.add('hidden');
+      });
+
+      this.classList.add('active');
+      const targetContent = document.getElementById(targetTab + '-tab');
+      if (targetContent) {
+        targetContent.classList.remove('hidden');
+        targetContent.classList.add('active');
+      }
+    });
+  });
+});
+
+// ==========================================
+// JQUERY FUNCTIONALITY
+// ==========================================
+$(document).ready(function() {
+  let selectedVariant = null;
+  const basePrice = {{ menu_item.price }};
+  
+  let selectedVariantsMap = new Map();
+  
+  // Toastr helper
+  function showToast(message, type = 'info') {
+    toastr.options = {
+      "closeButton": true,
+      "progressBar": true,
+      "positionClass": "toast-top-right",
+      "timeOut": "3000"
+    };
+    switch(type) {
+      case 'success': toastr.success(message); break;
+      case 'error': toastr.error(message); break;
+      case 'warning': toastr.warning(message); break;
+      default: toastr.info(message); break;
+    }
+  }
+
+  // ==========================================
+  // VARIANT SELECTION
+  // ==========================================
+  $('.variant-option').on('click', function() {
+    const $this = $(this);
+    const variantId = $this.data('variant-id');
+    const priceAdjustment = parseFloat($this.data('price-adjustment')) || 0;
+    const variantType = $this.find('.text-sm.font-medium').text().split(':')[0].trim();
+    const isSelected = $this.hasClass('selected');
+    
+    if (isSelected) {
+      deselectVariant($this);
+      selectedVariantsMap.delete(variantType);
+    } else {
+      const hasPriceAdjustment = priceAdjustment !== 0;
+      
+      if (selectedVariantsMap.has(variantType)) {
+        showToast(`You already selected a ${variantType} option. Please deselect it first.`, 'warning');
+        return;
+      }
+      
+      if (hasPriceAdjustment) {
+        const hasOtherPricedVariant = Array.from(selectedVariantsMap.values())
+          .some(v => v.hasPrice);
+        
+        if (hasOtherPricedVariant) {
+          showToast('You can only select one variant with price adjustment', 'warning');
+          return;
+        }
+      }
+      
+      selectVariant($this);
+      selectedVariantsMap.set(variantType, {
+        id: variantId,
+        hasPrice: hasPriceAdjustment,
+        adjustment: priceAdjustment
+      });
+    }
+    
+    updatePrice();
+  });
+  
+  function selectVariant($element) {
+    $element.addClass('selected border-orange-500');
+    $element.find('.variant-icon')
+      .removeClass('far fa-circle text-gray-400')
+      .addClass('fas fa-check-circle text-[#FF7F00]');
+  }
+  
+  function deselectVariant($element) {
+    $element.removeClass('selected border-orange-500');
+    $element.find('.variant-icon')
+      .removeClass('fas fa-check-circle text-[#FF7F00]')
+      .addClass('far fa-circle text-gray-400');
+  }
+  
+  function updatePrice() {
+    let finalPrice = basePrice;
+    
+    selectedVariantsMap.forEach((variant) => {
+      finalPrice += variant.adjustment;
+    });
+    
+    const $priceElement = $('.text-2xl.sm\\:text-3xl.font-bold.text-gray-900').first();
+    if ($priceElement.length) {
+      $priceElement.text('Rs ' + finalPrice.toFixed(0));
+    }
+  }
+  
+  // ==========================================
+  // MAIN PRODUCT - QUANTITY CONTROLS
+  // ==========================================
+  // Use more specific selectors to avoid conflicts
+  $('.bg-white.shadow-lg.rounded-xl .increaseQty').on('click', function(e) {
+    e.preventDefault();
+    const $input = $(this).siblings('.qtyInput');
+    const max = parseInt($input.attr('max'));
+    let current = parseInt($input.val()) || 1;
+    
+    if (current < max) {
+      $input.val(current + 1);
+    } else {
+      showToast(`Maximum available quantity is ${max}`, 'warning');
+    }
+  });
+  
+  $('.bg-white.shadow-lg.rounded-xl .decreaseQty').on('click', function(e) {
+    e.preventDefault();
+    const $input = $(this).siblings('.qtyInput');
+    let current = parseInt($input.val()) || 1;
+    if (current > 1) {
+      $input.val(current - 1);
+    }
+  });
+  
+  $('.bg-white.shadow-lg.rounded-xl .qtyInput').on('change', function() {
+    const max = parseInt($(this).attr('max'));
+    const min = parseInt($(this).attr('min'));
+    let value = parseInt($(this).val());
+    
+    if (isNaN(value) || value < min) {
+      $(this).val(min);
+    } else if (value > max) {
+      $(this).val(max);
+      showToast(`Maximum available quantity is ${max}`, 'warning');
+    }
+  });
+  
+  // ==========================================
+  // MAIN PRODUCT - ADD TO CART
+  // ==========================================
+  $('.add-to-cart').on('click', function(e) {
+    e.preventDefault();
+    const $btn = $(this);
+    const qty = parseInt($('.bg-white.shadow-lg.rounded-xl .qtyInput').first().val()) || 1;
+    const productId = $btn.data('product-id');
+    
+    const allSelectedVariantIds = Array.from(selectedVariantsMap.values()).map(v => v.id);
+    
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+    
+    $.ajax({
+      url: '/api/cart/add/',
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val() || $('meta[name=csrf-token]').attr('content')
+      },
+      contentType: 'application/json',
+      data: JSON.stringify({
+        menu_item_id: productId,
+        quantity: qty,
+        option_ids: allSelectedVariantIds
+      }),
+      success: function(response) {
+        if (response.success) {
+          showToast(response.message, 'success');
+          $('#desktopCartBadge, #mobileCartBadge').text(response.cart_count);
+          if (response.cart_count > 0) {
+            $('#desktopCartBadge, #mobileCartBadge').show();
+          }
+          $('.bg-white.shadow-lg.rounded-xl .qtyInput').first().val(1);
+          
+          $('.variant-option').each(function() {
+            deselectVariant($(this));
+          });
+          selectedVariantsMap.clear();
+          updatePrice();
+        } else {
+          showToast(response.message, 'error');
+        }
+      },
+      error: function(xhr) {
+        const response = xhr.responseJSON;
+        if (xhr.status === 401 || xhr.status === 403) {
+          showToast('Please login to add items to cart', 'warning');
+          setTimeout(() => {
+            window.location.href = '/login/?next=' + window.location.pathname;
+          }, 1500);
+        } else {
+          showToast(response?.message || 'An error occurred', 'error');
+        }
+      },
+      complete: function() {
+        $btn.prop('disabled', false).html('<i class="fa-solid fa-cart-shopping text-sm"></i> <span>Add to Cart</span>');
+      }
+    });
+  });
+
+
+});
+</script>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}Resubmit KYC{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8 sm:py-12">
+    <div class="max-w-3xl w-full bg-white rounded-2xl shadow-xl p-6 sm:p-8 md:p-10">
+
+        <!-- Header -->
+        <div class="text-center mb-6 sm:mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                <i class="fas fa-file-upload text-3xl text-blue-600"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Resubmit KYC Documents</h2>
+            <p class="text-gray-600 text-sm sm:text-base max-w-md mx-auto">
+                Upload clear and valid identification documents for verification.
+            </p>
+        </div>
+
+        <!-- Rejection Reason -->
+        {% if vendor.rejection_reason %}
+        <div class="bg-red-50 border border-red-200 p-4 rounded-lg mb-6">
+            <p class="text-red-800 text-sm font-semibold flex items-center gap-2">
+                <i class="fas fa-exclamation-circle"></i> Previously Rejected:
+            </p>
+            <p class="text-red-700 text-xs sm:text-sm mt-1">{{ vendor.rejection_reason }}</p>
+        </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-7">
+            {% csrf_token %}
+
+            <!-- PAN Number -->
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-hashtag text-blue-500"></i> PAN Number <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="pan_number" value="{{ vendor.pan_number }}" required
+                    class="w-full border-2 border-gray-300 p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm">
+            </div>
+
+            <!-- PAN Document -->
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-file text-blue-500"></i> PAN Document <span class="text-red-500">*</span>
+                </label>
+
+                <input type="file" name="pan_document" id="pan_document"
+                    accept="image/*,.pdf" required
+                    class="w-full border-2 border-gray-300 p-3 rounded-lg bg-gray-50 text-sm file:bg-blue-50 file:px-4 file:py-2 file:font-semibold file:text-blue-700 file:rounded-lg">
+
+                <!-- Preview -->
+                <img id="preview_pan" class="mt-3 hidden w-40 rounded-lg shadow">
+            </div>
+
+            <!-- Citizenship Front -->
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-id-card text-blue-500"></i> Citizenship Front
+                </label>
+
+                <input type="file" name="citizenship_front" id="citizenship_front"
+                    accept="image/*,.pdf"
+                    class="w-full border-2 border-gray-300 p-3 rounded-lg bg-gray-50 text-sm file:bg-blue-50 file:px-4 file:py-2 file:font-semibold file:text-blue-700 file:rounded-lg">
+
+                <img id="preview_c_front" class="mt-3 hidden w-40 rounded-lg shadow">
+            </div>
+
+            <!-- Citizenship Back -->
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-id-card-alt text-blue-500"></i> Citizenship Back
+                </label>
+
+                <input type="file" name="citizenship_back" id="citizenship_back"
+                    accept="image/*,.pdf"
+                    class="w-full border-2 border-gray-300 p-3 rounded-lg bg-gray-50 text-sm file:bg-blue-50 file:px-4 file:py-2 file:font-semibold file:text-blue-700 file:rounded-lg">
+
+                <img id="preview_c_back" class="mt-3 hidden w-40 rounded-lg shadow">
+            </div>
+
+            <!-- Company Registration -->
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-building text-blue-500"></i> Company Registration (Optional)
+                </label>
+
+                <input type="file" name="company_registration" id="company_registration"
+                    accept="image/*,.pdf"
+                    class="w-full border-2 border-gray-300 p-3 rounded-lg bg-gray-50 text-sm file:bg-blue-50 file:px-4 file:py-2 file:font-semibold file:text-blue-700 file:rounded-lg">
+
+                <img id="preview_company" class="mt-3 hidden w-40 rounded-lg shadow">
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                <button type="submit"
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold shadow-md cursor-pointer">
+                    <i class="fas fa-paper-plane mr-2"></i> Submit for Verification
+                </button>
+                <a href="{% url 'restaurant_dashboard' %}"
+                    class="flex-1 text-center bg-gray-100 hover:bg-gray-200 border border-gray-300 py-3 rounded-lg font-semibold text-gray-800  cursor-pointer">
+                    <i class="fas fa-arrow-left mr-2"></i> Cancel
+                </a>
+            </div>
+        </form>
+
+        <!-- Support -->
+        <div class="mt-8 text-center border-t pt-6">
+            <p class="text-sm text-gray-600">Need help?</p>
+            <a href="mailto:support@example.com" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                <i class="fas fa-envelope mr-1"></i> Contact Support Team
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function previewFile(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+
+    input.addEventListener("change", () => {
+        const file = input.files[0];
+        if (!file || file.type.includes("pdf")) {
+            preview.classList.add("hidden");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            preview.src = e.target.result;
+            preview.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// Initialize preview functions
+previewFile("pan_document", "preview_pan");
+previewFile("citizenship_front", "preview_c_front");
+previewFile("citizenship_back", "preview_c_back");
+previewFile("company_registration", "preview_company");
+</script>
+
+{% endblock %}

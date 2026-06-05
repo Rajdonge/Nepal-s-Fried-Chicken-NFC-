@@ -1,0 +1,77 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
+    <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-users"></i> Users</h1>
+  
+  </div>
+
+  <form method="get" class="mb-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+    <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search by username or email" class="border border-gray-300 rounded-lg px-3 py-2 w-full" />
+    <select name="role" class="border border-gray-300 rounded-lg px-3 py-2 w-full">
+      <option value="">All Roles</option>
+      <option value="customer" {% if request.GET.role == 'customer' %}selected{% endif %}>Customer</option>
+      <option value="vendor" {% if request.GET.role == 'vendor' %}selected{% endif %}>Vendor</option>
+      <option value="admin" {% if request.GET.role == 'admin' %}selected{% endif %}>Admin</option>
+      <option value="staff" {% if request.GET.role == 'staff' %}selected{% endif %}>Staff</option>
+    </select>
+    <div class="flex gap-2">
+      <button class="bg-gray-800 text-white px-4 py-2 rounded-lg w-full md:w-auto">Filter</button>
+      <a href="?" class="px-4 py-2 rounded-lg border w-full md:w-auto">Reset</a>
+    </div>
+  </form>
+
+  <div class="overflow-x-auto">
+    <table class="w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 text-left">User</th>
+          <th class="px-4 py-3 text-left">Contact</th>
+          <th class="px-4 py-3 text-left">Role</th>
+          <th class="px-4 py-3 text-left">Joined</th>
+          <th class="px-4 py-3 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3">
+            <div class="font-medium">{{ user.username }}</div>
+            {% if user.first_name or user.last_name %}
+              <div class="text-gray-600 text-xs">{{ user.first_name }} {{ user.last_name }}</div>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3">
+            <div>{{ user.email|default:'-' }}</div>
+          </td>
+          <td class="px-4 py-3 capitalize">
+            {% if user.role %}
+              {{ user.role.role }}
+            {% else %}
+              <span class="text-gray-400">-</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3">{{ user.date_joined|date:"Y-m-d H:i" }}</td>
+          <td class="px-4 py-3 text-center space-x-3">
+            <a href="{% url 'admin_user_update' user.id %}" title="Edit" class="text-blue-600 hover:text-blue-800">
+              <i class="fas fa-edit"></i>
+            </a>
+            {% if request.user.id != user.id %}
+            <a href="{% url 'admin_user_delete' user.id %}" title="Delete" onclick="return confirm('Delete this user?')" class="text-red-600 hover:text-red-800">
+              <i class="fas fa-trash-alt"></i>
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-gray-500 py-6">No users found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

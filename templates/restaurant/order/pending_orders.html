@@ -1,0 +1,273 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+{% endblock %}
+
+{% block content %}
+<section class="px-4 sm:px-6 lg:px-8 py-4">
+  
+  <!-- Page Heading (compact) -->
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+      <i class="fas fa-clock text-base"></i> Pending Orders
+    </h1>
+  </div>
+
+  <!-- Quick Links (compact) -->
+  <div class="flex gap-2 mb-4">
+    <a href="{% url 'restaurant_orders_list' %}" class="text-xs px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">All Orders</a>
+    <a href="{% url 'restaurant_orders_delivered' %}" class="text-xs px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">Delivered</a>
+  </div>
+
+  <!-- Table Container (compact, no overflow) -->
+  <div class="overflow-x-auto">
+    <div class="w-full align-middle">
+      <table class="display w-full border border-gray-200 rounded-lg text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase w-20">Order</th>
+            <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Customer</th>
+            <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Products</th>
+            <th class="px-2 py-2 text-center text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Items</th>
+            <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Total</th>
+            <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Payment</th>
+            <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
+            <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase hidden lg:table-cell">Est. Delivery</th>
+            <th class="px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase hidden lg:table-cell">Created</th>
+            <th class="px-2 py-2 text-center text-xs font-semibold text-gray-700 uppercase">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for order in orders %}
+          <tr class="hover:bg-gray-50">
+            <!-- Order ID (compact) -->
+            <td class="px-2 py-3 whitespace-nowrap">
+              <a href="{% url 'restaurant_order_details' order.order_number %}"
+                title="{{ order.order_number }}"
+                class="font-bold text-indigo-600 text-sm truncate block w-24">
+                #{{ order.order_number }}
+              </a>
+            </td>
+
+            <!-- Customer (compact) -->
+            <td class="px-2 py-3 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900 truncate max-w-[150px]">{{ order.full_name }}</div>
+              <div class="text-xs text-gray-500 truncate max-w-[150px]">{{ order.email }}</div>
+            </td>
+
+            <!-- Products (thumbnail) -->
+            <td class="px-2 py-3">
+              <div class="min-w-0">
+                {% with items=order.items.all %}
+                  {% if items %}
+                    <div class="flex items-center gap-2">
+                      {% with first=items.0 %}
+                        {% if first.product.main_image %}
+                          <img src="{{ first.product.main_image.url }}" alt="{{ first.product.name }}" class="w-8 h-8 object-cover rounded border flex-shrink-0">
+                        {% else %}
+                          <div class="w-8 h-8 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-image text-gray-400 text-xs"></i>
+                          </div>
+                        {% endif %}
+                        <div class="min-w-0">
+                          <div class="text-xs font-medium text-gray-900 truncate max-w-[150px]">{{ first.product.name|truncatechars:30 }}</div>
+                          {% if items|length > 1 %}
+                            <div class="text-xs text-gray-500">+{{ items|length|add:"-1" }}</div>
+                          {% endif %}
+                        </div>
+                      {% endwith %}
+                    </div>
+                  {% endif %}
+                {% endwith %}
+              </div>
+            </td>
+
+            <!-- Items count -->
+            <td class="px-2 py-3 text-center whitespace-nowrap">
+              <span class="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 rounded-full font-semibold text-xs">{{ order.items.count }}</span>
+            </td>
+
+            <!-- Total -->
+            <td class="px-2 py-3 whitespace-nowrap font-bold text-gray-900 text-sm">Rs {{ order.total|floatformat:0 }}</td>
+
+            <!-- Payment (compact) -->
+            <td class="px-2 py-3">
+              <div class="w-[100px] space-y-1">
+                <select class="payment-status-select text-xs rounded border px-2 py-1 w-full font-medium
+                  {% if order.payment_status == 'paid' %}bg-green-50 text-green-800 border-green-200
+                  {% elif order.payment_status == 'unpaid' %}bg-yellow-50 text-yellow-800 border-yellow-200
+                  {% elif order.payment_status == 'failed' %}bg-red-50 text-red-800 border-red-200
+                  {% elif order.payment_status == 'refunded' %}bg-gray-100 text-gray-700 border-gray-300
+                  {% endif %}"
+                  data-id="{{ order.order_number }}">
+                  {% for value, label in order_model.PAYMENT_STATUS_CHOICES %}
+                    <option value="{{ value }}" {% if order.payment_status == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+
+                <div class="{% if order.payment_status != 'paid' and order.payment_status != 'failed' %}hidden{% endif %} space-y-0.5">
+                  <input type="text" class="transaction-id-input text-xs border rounded px-2 py-1 w-full" 
+                         placeholder="TxnID/Remarks" value="{{ order.transaction_id|default:'' }}"
+                         data-order="{{ order.order_number }}">
+                </div>
+                
+                <button type="button" class="save-payment-btn bg-blue-600 text-white px-2 py-1 text-xs rounded hover:bg-blue-700 w-full transition" 
+                        data-order="{{ order.order_number }}">
+                  <i class="fas fa-save mr-1"></i>Save
+                </button>
+              </div>
+            </td>
+
+            <!-- Status (compact) -->
+            <td class="px-2 py-3">
+              <select class="status-select border rounded px-2 py-1 text-xs font-medium w-28
+                {% if order.status == 'pending' %}bg-yellow-50 text-yellow-800 border-yellow-200
+                {% elif order.status == 'processing' %}bg-blue-50 text-blue-800 border-blue-200
+                {% elif order.status == 'shipped' %}bg-indigo-50 text-indigo-800 border-indigo-200
+                {% elif order.status == 'delivered' %}bg-green-50 text-green-800 border-green-200
+                {% elif order.status == 'cancelled' %}bg-red-50 text-red-800 border-red-200
+                {% endif %}" 
+                data-id="{{ order.order_number }}"
+                data-current="{{ order.status }}">
+                {% for value, label in order_model.STATUS_CHOICES %}
+                  <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </td>
+
+            <!-- Est. Delivery (hidden on mobile) -->
+            <td class="px-2 py-3 whitespace-nowrap hidden lg:table-cell text-xs">
+              {% if order.estimated_delivery_date %}{{ order.estimated_delivery_date|date:"M d, Y" }}{% else %}<span class="text-gray-400">-</span>{% endif %}
+            </td>
+
+            <!-- Created (hidden on mobile) -->
+            <td class="px-2 py-3 whitespace-nowrap hidden lg:table-cell text-xs">
+              <div>{{ order.created_at|date:"M d, Y" }}</div>
+            </td>
+
+            <!-- Actions -->
+            <td class="px-2 py-3 whitespace-nowrap">
+              <div class="flex items-center gap-1">
+                <a href="{% url 'restaurant_order_details' order.order_number %}" class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:bg-blue-50 rounded-lg" title="Details">
+                  <i class="fa-solid fa-eye text-sm"></i>
+                </a>
+                <a href="{% url 'restaurant_orders_invoice_list' order.order_number %}" class="inline-flex items-center justify-center w-8 h-8 text-green-600 hover:bg-green-50 rounded-lg" title="Invoices">
+                  <i class="fa-solid fa-file-invoice text-sm"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="10" class="px-3 py-8 text-center text-gray-500">
+              <i class="fas fa-clock text-4xl text-gray-300 mb-3"></i>
+              <div class="font-medium">No pending orders found.</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+const csrfToken = getCookie('csrftoken');
+
+// Show/Hide Transaction ID input
+$(document).on('change', '.payment-status-select', function() {
+  const newStatus = $(this).val();
+  const $wrapper = $(this).closest('div').find('div').eq(0);
+  if (newStatus === 'paid' || newStatus === 'failed') {
+    $wrapper.removeClass('hidden');
+  } else {
+    $wrapper.addClass('hidden');
+  }
+});
+
+// Save Payment + Transaction ID
+$(document).on('click', '.save-payment-btn', function() {
+  const $btn = $(this);
+  const orderNumber = $btn.data('order');
+  const $select = $btn.closest('td').find('.payment-status-select');
+  const newStatus = $select.val();
+  const $input = $btn.closest('td').find('.transaction-id-input');
+  const transactionId = $input.val().trim();
+
+  if ((newStatus === 'paid' || newStatus === 'failed') && !transactionId) {
+    toastr.warning('Transaction ID/Remarks required');
+    return;
+  }
+
+  $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+  $.ajax({
+    url: `{% url 'restaurant_payment_change_status' 'ORD00000000000000' %}`.replace('ORD00000000000000', orderNumber),
+    type: 'POST',
+    data: { payment_status: newStatus, transaction_id: transactionId },
+    headers: { 'X-CSRFToken': csrfToken },
+    success: function(resp) {
+      if (resp.success) {
+        toastr.success('Payment updated');
+        setTimeout(() => window.location.reload(), 800);
+      } else {
+        toastr.error(resp.error || 'Update failed');
+      }
+    },
+    error: function() { toastr.error('Network error'); },
+    complete: function() { $btn.prop('disabled', false).html('<i class="fas fa-save mr-1"></i>Save'); }
+  });
+});
+
+// Update Order Status
+$(document).on('change', '.status-select', function() {
+  const $select = $(this);
+  const orderNumber = $select.data('id');
+  const newStatus = $select.val();
+  const oldStatus = $select.data('current') || newStatus;
+
+  if (!confirm(`Change status to "${$select.find('option:selected').text()}"?`)) {
+    $select.val(oldStatus);
+    return;
+  }
+
+  $select.prop('disabled', true);
+
+  $.ajax({
+    url: `{% url 'restaurant_order_change_status' 'ORD00000000000000' %}`.replace('ORD00000000000000', orderNumber),
+    type: 'POST',
+    data: { status: newStatus },
+    headers: { 'X-CSRFToken': csrfToken },
+    success: function(resp) {
+      if (resp.success) {
+        toastr.success('Status updated');
+        setTimeout(() => window.location.reload(), 800);
+      } else {
+        toastr.error('Update failed');
+        $select.val(oldStatus);
+      }
+    },
+    error: function() { toastr.error('Connection error'); $select.val(oldStatus); },
+    complete: function() { $select.prop('disabled', false); }
+  });
+});
+</script>
+{% endblock %}

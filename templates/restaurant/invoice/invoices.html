@@ -1,0 +1,137 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">
+      <i class="fa-solid fa-file-invoice"></i> Vendor Invoices
+    </h1>
+  </div>
+
+  <!-- Filters -->
+  <div class="mb-4 grid grid-cols-1 md:grid-cols-5 gap-4">
+    <input type="text" id="searchBox" placeholder="Search invoice, order, customer..."
+      class="border border-gray-300 rounded-lg p-2.5" />
+
+    <select id="statusFilter" class="border border-gray-300 rounded-lg p-2.5">
+      <option value="">All Payments</option>
+      <option value="Paid">Paid</option>
+      <option value="Pending">Pending</option>
+      <option value="Failed">Failed</option>
+    </select>
+
+    <input type="date" id="startDate" class="border border-gray-300 rounded-lg p-2.5" />
+    <input type="date" id="endDate" class="border border-gray-300 rounded-lg p-2.5" />
+
+    <button id="clearFilters" class="bg-gray-800 text-white px-4 py-2 rounded-lg w-full">Clear</button>
+  </div>
+
+  <!-- Invoices Table -->
+  <div class="overflow-x-auto">
+    <table id="invoiceTable" class="w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 text-left">Invoice #</th>
+          <th class="px-4 py-3 text-left">Order #</th>
+          <th class="px-4 py-3 text-left">Customer</th>
+          <th class="px-4 py-3 text-left">Subtotal</th>
+          <th class="px-4 py-3 text-left">Tax</th>
+          <th class="px-4 py-3 text-left">Total</th>
+          <th class="px-4 py-3 text-left">Payment Status</th>
+          <th class="px-4 py-3 text-left">Date</th>
+          <th class="px-4 py-3 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for invoice in invoices %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium">{{ invoice.invoice_number }}</td>
+          <td class="px-4 py-3">{{ invoice.order.order_number }}</td>
+          <td class="px-4 py-3">
+            {{ invoice.customer.get_full_name }}<br>
+            <span class="text-xs text-gray-500">{{ invoice.customer.email }}</span>
+          </td>
+          <td class="px-4 py-3">Rs {{ invoice.subtotal }}</td>
+          <td class="px-4 py-3">Rs {{ invoice.tax_amount }}</td>
+          <td class="px-4 py-3 font-semibold">Rs {{ invoice.total }}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-1 rounded-full text-xs font-medium
+              {% if invoice.payment_status == 'paid' %}bg-green-100 text-green-700
+              {% elif invoice.payment_status == 'pending' %}bg-yellow-100 text-yellow-700
+              {% elif invoice.payment_status == 'failed' %}bg-red-100 text-red-700
+              {% endif %}">
+              {{ invoice.payment_status|capfirst }}
+            </span>
+          </td>
+<td class="px-4 py-3">{{ invoice.created_at|date:"Y-m-d h:i A" }}</td>
+
+          <td class="px-4 py-3 text-center flex justify-center gap-3">
+            <a href="{% url 'restaurant_invoice_detail' invoice.invoice_number %}" 
+              class="text-blue-600 hover:text-blue-800 font-medium" title="View Invoice">
+              <i class="fa-solid fa-eye"></i>
+            </a>
+          
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" class="text-center text-gray-500 py-6">No invoices found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  $(document).ready(function () {
+    const table = $('#invoiceTable').DataTable({
+      pageLength: 10,
+      lengthChange: true,
+      searching: true,
+      ordering: true,
+      responsive: true,
+      columnDefs: [{ orderable: false, targets: [8] }]
+    });
+
+    //  Global search
+    $('#searchBox').on('keyup', function () {
+      table.search(this.value).draw();
+    });
+
+    // 📅 Date + Status filters
+    function applyFilters() {
+      const status = $('#statusFilter').val().toLowerCase();
+      const startDate = $('#startDate').val();
+      const endDate = $('#endDate').val();
+
+      table.rows().every(function () {
+        const row = $(this.node());
+        const rowStatus = row.find('td:nth-child(7)').text().trim().toLowerCase();
+        const rowDate = row.find('td:nth-child(8)').text().trim();
+        let show = true;
+
+        if (status && rowStatus !== status) show = false;
+        if (startDate && rowDate < startDate) show = false;
+        if (endDate && rowDate > endDate) show = false;
+
+        if (show) row.show(); else row.hide();
+      });
+    }
+
+    $('#statusFilter, #startDate, #endDate').on('change', applyFilters);
+
+    //  Clear filters
+    $('#clearFilters').on('click', function () {
+      $('#statusFilter, #startDate, #endDate, #searchBox').val('');
+      table.search('').draw();
+      table.rows().every(function () { $(this.node()).show(); });
+    });
+  });
+</script>
+{% endblock %}

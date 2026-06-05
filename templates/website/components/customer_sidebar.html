@@ -1,0 +1,97 @@
+<!-- customer_sidebar.html -->
+
+<!-- Mobile Sidebar Toggle Button -->
+<div class="md:hidden flex justify-between items-center mb-4 px-4">
+  <p class="text-lg font-semibold text-[var(--text-primary)]">Dashboard</p>
+  <button id="sidebarToggle" class="text-[var(--text-primary)] focus:outline-none p-2">
+    <i class="fa fa-bars text-2xl"></i>
+  </button>
+</div>
+
+<!-- Sidebar -->
+<aside id="accountSidebar" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-white shadow-xl border border-gray-100 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto md:rounded-2xl">
+
+  <!-- Header: Avatar + Name -->
+  <div class="p-6 border-b border-gray-100 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-[var(--primary)] text-white flex items-center justify-center text-lg font-bold overflow-hidden">
+      {% if user.profile.avatar %}
+        <img src="{{ user.profile.avatar.url }}" alt="{{ user.get_full_name }}" class="w-10 h-10 object-cover">
+      {% else %}
+        <i class="fa fa-user-circle"></i>
+      {% endif %}
+    </div>
+    <div>
+      <p class="text-base font-semibold text-[var(--text-primary)]">{{ user.first_name }}</p>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex flex-col py-3 text-sm font-medium text-[var(--text-primary)]">
+
+    <!-- Profile Overview -->
+    <a href="{% url 'customer_profile' %}" 
+       class="flex items-center gap-3 px-6 py-3 rounded-lg transition-all
+              {% if request.path == '/customer-profile/' %} bg-[var(--bg-light)] font-semibold text-[var(--primary)] {% else %} hover:bg-gray-50 text-gray-700 {% endif %}">
+      <i class="fa fa-user w-6 h-6 {% if request.path == '/customer-profile/' %}text-[var(--primary)]{% else %}text-gray-500{% endif %}"></i>
+      Profile Overview
+    </a>
+
+    <!-- My Orders -->
+    <a href="{% url 'customer_orders' %}" 
+       class="flex items-center gap-3 px-6 py-3 rounded-lg transition-all
+              {% if request.path == '/dashboard/customer/orders/' %} bg-[var(--bg-light)] font-semibold text-[var(--primary)] {% else %} hover:bg-gray-50 text-gray-700 {% endif %}">
+      <i class="fa fa-box w-6 h-6 {% if request.path == '/dashboard/orders/' %}text-[var(--primary)]{% else %}text-gray-500{% endif %}"></i>
+      My Orders
+    </a>
+
+    <!-- My Invoices -->
+    <a href="{% url 'customer_invoices' %}" 
+       class="flex items-center gap-3 px-6 py-3 rounded-lg transition-all
+              {% if request.path == '/dashboard/customer/invoices/' %} bg-[var(--bg-light)] font-semibold text-[var(--primary)] {% else %} hover:bg-gray-50 text-gray-700 {% endif %}">
+      <i class="fa fa-file-invoice w-6 h-6 {% if request.path == '/dashboard/invoices/' %}text-[var(--primary)]{% else %}text-gray-500{% endif %}"></i>
+      My Invoices
+    </a>
+
+    <!-- Vendor Dashboard (if applicable) -->
+    {% if user.role.role == 'vendor' %}
+    <div class="border-t border-gray-100 my-2"></div>
+    <a href="{% url 'restaurant_dashboard' %}" class="flex items-center gap-3 px-6 py-3 rounded-lg transition-all hover:bg-gray-50 text-gray-600">
+      <i class="fa fa-store w-6 h-6"></i>
+      Vendor Dashboard
+    </a>
+    {% endif %}
+
+    <div class="border-t border-gray-100 my-2"></div>
+
+    <!-- Logout -->
+    <a href="{% url 'logout' %}" class="flex items-center gap-3 px-6 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all">
+      <i class="fa fa-sign-out-alt w-6 h-6"></i>
+      Logout
+    </a>
+
+  </nav>
+</aside>
+
+<!-- Sidebar Toggle Script -->
+<script>
+  const sidebar = document.getElementById('accountSidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+
+  toggleBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('-translate-x-full');
+  });
+
+  // Close sidebar on mobile when clicking a link
+  sidebar.querySelectorAll('nav a').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+    });
+  });
+
+  // Close sidebar if clicking outside (mobile)
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth < 768 && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+      sidebar.classList.add('-translate-x-full');
+    }
+  });
+</script>

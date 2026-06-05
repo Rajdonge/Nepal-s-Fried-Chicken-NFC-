@@ -1,0 +1,104 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Edit Child Category</h1>
+    <a href="{% url 'admin_childcategory_list' %}" class="text-sm text-blue-600 hover:text-blue-800">Back to list</a>
+  </div>
+
+  <form method="post" action="{% url 'admin_childcategory_update' childcategory.id %}" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Name -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Name</label>
+      <input type="text" name="name" value="{{ childcategory.name }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+    </div>
+
+    <!-- Category (for filtering subcategories only, NOT submitted) -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Category</label>
+      <select id="category" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5">
+        <option value="">Select Category</option>
+        {% for category in categories %}
+          <option value="{{ category.id }}" {% if category.id == selected_category.id %}selected{% endif %}>
+            {{ category.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Subcategory -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Subcategory</label>
+      <select name="subcategory" id="subcategory" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+        <option value="">Select Subcategory</option>
+        {% for subcategory in subcategories %}
+          <option value="{{ subcategory.id }}" {% if subcategory.id == childcategory.subcategory.id %}selected{% endif %}>
+            {{ subcategory.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+  <!-- Image -->
+<div>
+  <label class="block text-sm font-medium text-gray-700">Image</label>
+  {% if childcategory.image %}
+    <img src="{{ childcategory.image.url }}" alt="{{ childcategory.name }}" class="w-32 h-32 object-cover mb-2 rounded">
+  {% endif %}
+  <input type="file" name="image" accept="image/*" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5">
+</div>
+
+    <div class="pt-4">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Update Child Category</button>
+    </div>
+  </form>
+</div>
+
+<!-- Script to dynamically load subcategories -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const categorySelect = document.getElementById('category');
+  const subcatSelect = document.getElementById('subcategory');
+  const selectedSubcatId = "{{ childcategory.subcategory.id }}"; // preselect subcategory
+
+  function loadSubcategories(categoryId, preselectId=null) {
+    if (!categoryId) {
+      subcatSelect.innerHTML = '<option value="">Select Subcategory</option>';
+      return;
+    }
+
+    const url = "{% url 'get_subcategories' 0 %}".replace('0', categoryId);
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        subcatSelect.innerHTML = '<option value="">Select Subcategory</option>';
+        data.forEach(subcat => {
+          const option = document.createElement('option');
+          option.value = subcat.id;
+          option.textContent = subcat.name;
+          if (preselectId && subcat.id == preselectId) option.selected = true;
+          subcatSelect.appendChild(option);
+        });
+      })
+      .catch(err => {
+        console.error('Error loading subcategories:', err);
+        subcatSelect.innerHTML = '<option value="">Select Subcategory</option>';
+      });
+  }
+
+  // Load subcategories on page load
+  const initialCategoryId = categorySelect.value;
+  if (initialCategoryId) loadSubcategories(initialCategoryId, selectedSubcatId);
+
+  // Reload subcategories when category changes
+  categorySelect.addEventListener('change', function() {
+    loadSubcategories(this.value);
+  });
+});
+</script>
+{% endblock %}

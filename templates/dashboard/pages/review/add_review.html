@@ -1,0 +1,166 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+  /* Improve input field visibility */
+  input, select, textarea {
+    border: 1px solid #d1d5db !important;
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 0.5rem !important;
+    font-size: 0.875rem !important;
+    transition: all 0.2s ease;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+  
+  label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+  
+  /* Fix select dropdown arrow visibility */
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem !important;
+  }
+  
+  /* Container styling */
+  .form-container {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    max-width: 48rem;
+    margin: 2rem auto 0 auto;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Button styling */
+  .btn-primary {
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+  
+  .btn-primary:hover {
+    background-color: #2563eb;
+  }
+  
+  .btn-secondary {
+    background-color: #f3f4f6;
+    color: #374151;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    border: 1px solid #d1d5db;
+    transition: background-color 0.2s;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #e5e7eb;
+  }
+  
+  /* Make placeholder text more visible */
+  ::placeholder {
+    color: #9ca3af !important;
+    opacity: 1;
+  }
+  
+  /* Fix for dark backgrounds if any */
+  .bg-white input,
+  .bg-white select,
+  .bg-white textarea {
+    background-color: #ffffff !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">
+      <i class="fas fa-plus-circle text-blue-600 mr-2"></i>Add Review
+    </h1>
+    <a href="{% url 'admin_reviews_list' %}" class="text-blue-600 hover:text-blue-800 hover:underline">
+      <i class="fas fa-arrow-left mr-1"></i> Back to Reviews
+    </a>
+  </div>
+
+  <form method="post" class="space-y-5">
+    {% csrf_token %}
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        <i class="fas fa-box text-gray-500 mr-1"></i> Product <span class="text-red-500">*</span>
+      </label>
+      <select name="product" required class="w-full">
+        <option value="" disabled selected>— Select a product —</option>
+        {% for p in products %}
+          <option value="{{ p.id }}">{{ p.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        <i class="fas fa-user text-gray-500 mr-1"></i> User <span class="text-red-500">*</span>
+      </label>
+      <select name="user" required class="w-full">
+        <option value="" disabled selected>— Select a user —</option>
+        {% for u in users %}
+          <option value="{{ u.id }}">{{ u.username }} ({{ u.email }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        <i class="fas fa-star text-yellow-500 mr-1"></i> Rating <span class="text-red-500">*</span>
+      </label>
+      <select name="rating" required class="w-full">
+        <option value="" disabled selected>— Select a rating —</option>
+        {% for i in "12345" %}
+          <option value="{{ forloop.counter }}">
+            {% for star in "12345"|slice:forloop.counter %}★{% endfor %}
+            {% for star in "12345"|slice:forloop.revcounter0 %}☆{% endfor %}
+            ({{ forloop.counter }} out of 5)
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        <i class="fas fa-comment text-gray-500 mr-1"></i> Comment
+      </label>
+      <textarea name="comment" rows="4" class="w-full" 
+                placeholder="Write your review comment here... (optional)"></textarea>
+      <p class="text-xs text-gray-500 mt-1">Maximum 500 characters</p>
+    </div>
+
+    <div class="flex justify-end gap-3 pt-4 border-t">
+      <a href="{% url 'admin_reviews_list' %}" class="btn-secondary">
+        <i class="fas fa-times mr-1"></i> Cancel
+      </a>
+      <button type="submit" class="btn-primary">
+        <i class="fas fa-save mr-1"></i> Save Review
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+
+<div class="min-h-screen flex items-center justify-center bg-[var(--bg-light)] py-12 px-4">
+  <div class="max-w-md w-full bg-white rounded-lg shadow-md p-8 space-y-6">
+
+<!-- Title -->
+<div class="text-center">
+  <h2 class="text-2xl font-bold text-[var(--text-primary)]">Create Account</h2>
+  <p class="text-gray-500 mt-1">Sign up to order food</p>
+</div>
+
+<!-- Signup Form -->
+<form id="signupForm" method="POST" action="" class="space-y-4">
+  {% csrf_token %}
+
+  <!-- First Name -->
+  <div>
+    <label for="first_name" class="block text-sm font-semibold text-gray-700">First Name</label>
+    <input type="text" name="first_name" id="first_name" required
+           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm">
+  </div>
+
+  <!-- Last Name -->
+  <div>
+    <label for="last_name" class="block text-sm font-semibold text-gray-700">Last Name</label>
+    <input type="text" name="last_name" id="last_name" required
+           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm">
+  </div>
+
+  <!-- Email -->
+  <div>
+    <label for="email" class="block text-sm font-semibold text-gray-700">Email</label>
+    <input type="email" name="email" id="email" required
+           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm">
+    <span class="text-red-500 text-xs mt-1 hidden" id="errorEmail">Enter a valid email</span>
+  </div>
+
+  <!-- Submit Button -->
+  <div>
+    <button type="submit"
+            class="w-full py-2 px-4 bg-[var(--bg-brown)] text-white font-semibold rounded-lg hover:bg-[var(--primary-dark)] cursor-pointer transition">
+      Sign Up
+    </button>
+  </div>
+</form>
+
+<!-- Divider -->
+<div class="flex items-center my-4">
+  <hr class="flex-grow border-gray-300">
+  <span class="mx-2 text-gray-400 text-sm">OR</span>
+  <hr class="flex-grow border-gray-300">
+</div>
+
+<!-- Login Link -->
+<p class="text-center text-gray-500 text-sm mt-4">
+  Already have an account? <a href="{% url 'login_page' %}" class="text-[var(--primary)] font-semibold hover:text-[var(--primary-dark)]">Sign In</a>
+</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+$(document).ready(function() {
+  $('#signupForm').on('submit', function(e) {
+    let valid = true;
+
+    // Reset error messages
+    $('#errorEmail').hide();
+
+    // Validate email
+    const email = $('#email').val().trim();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailPattern.test(email)) {
+      $('#errorEmail').show();
+      valid = false;
+    }
+
+    if (!valid) {
+      e.preventDefault();
+    } else {
+      $('button[type="submit"]').prop('disabled', true).text('Please wait...');
+    }
+  });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,270 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">
+      {% if is_edit %}Edit Ad Banner{% else %}Create Ad Banner{% endif %}
+    </h1>
+    <a href="{% url 'admin_ad_banner_list' %}" class="text-sm text-blue-600 hover:text-blue-800">Back to list</a>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Title -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">Title <span class="text-red-600">*</span></label>
+        <input type="text" 
+               name="title" 
+               value="{{ initial.title|default:'' }}"
+               class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" 
+               placeholder="Enter banner title"
+               required>
+      </div>
+
+      <!-- Description -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">Description <span class="text-gray-400 text-xs">(Optional)</span></label>
+        <textarea name="description" 
+                  rows="3" 
+                  class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" 
+                  placeholder="Enter banner description">{{ initial.description|default:'' }}</textarea>
+      </div>
+
+      <!-- Restaurant Selection -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Restaurant <span class="text-gray-400 text-xs">(Optional)</span></label>
+        <select name="restaurant" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5">
+          <option value="">All Restaurants (Global Ad)</option>
+          {% for restaurant in restaurants %}
+          <option value="{{ restaurant.id }}" 
+                  {% if initial.restaurant_id|stringformat:"s" == restaurant.id|stringformat:"s" %}selected{% endif %}>
+            {{ restaurant.restaurant_name }}
+          </option>
+          {% endfor %}
+        </select>
+        <p class="text-xs text-gray-500 mt-1">Leave empty for global advertisement</p>
+      </div>
+
+      <!-- Display Order -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Display Order</label>
+        <input type="number" 
+               name="order" 
+               value="{{ initial.order|default:'0' }}"
+               class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" 
+               placeholder="0">
+        <p class="text-xs text-gray-500 mt-1">Lower numbers appear first</p>
+      </div>
+
+      <!-- Banner Image -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">
+          Banner Image {% if not is_edit %}<span class="text-red-600">*</span>{% endif %}
+        </label>
+        <input type="file" 
+               name="image" 
+               accept="image/*" 
+               class="mt-1 block w-full"
+               {% if not is_edit %}required{% endif %}>
+        <p class="text-xs text-gray-500 mt-1">Upload JPG, PNG, or GIF (Recommended size: 1200x400px)</p>
+        
+        {% if is_edit and banner.image %}
+        <div class="mt-3">
+          <p class="text-sm text-gray-600 mb-2">Current Image:</p>
+          <img src="{{ banner.image.url }}" 
+               alt="{{ banner.title }}" 
+               class="h-24 w-auto object-cover rounded-lg border border-gray-200">
+          <p class="text-xs text-gray-500 mt-1">Leave empty to keep current image</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Link URL -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Link URL <span class="text-gray-400 text-xs">(Optional)</span></label>
+        <input type="url" 
+               name="link_url" 
+               value="{{ initial.link_url|default:'' }}"
+               class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" 
+               placeholder="https://example.com/promotion">
+        <p class="text-xs text-gray-500 mt-1">Where users will go when clicking the banner</p>
+      </div>
+
+      <!-- CTA Button Text -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Button Text</label>
+        <input type="text" 
+               name="cta_text" 
+               value="{{ initial.cta_text|default:'Learn More' }}"
+               class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" 
+               placeholder="Learn More">
+      </div>
+
+      <!-- Start Date -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Start Date & Time</label>
+        <input type="datetime-local" 
+               name="start_date" 
+               value="{{ initial.start_date|default:'' }}"
+               class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5">
+        <p class="text-xs text-gray-500 mt-1">When should this banner start showing?</p>
+      </div>
+
+      <!-- End Date -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">End Date & Time <span class="text-gray-400 text-xs">(Optional)</span></label>
+        <input type="datetime-local" 
+               name="end_date" 
+               value="{{ initial.end_date|default:'' }}"
+               class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5">
+        <p class="text-xs text-gray-500 mt-1">Leave blank if never expires</p>
+      </div>
+    </div>
+
+    <!-- Active Status - FIXED: Removed value="1" -->
+    <div class="mt-2">
+      <label class="inline-flex items-center gap-2">
+        <input type="checkbox" 
+               name="is_active" 
+               {% if initial.is_active %}checked{% endif %}>
+        <span class="text-gray-700 text-sm">Active</span>
+      </label>
+      <p class="text-xs text-gray-500 mt-1">Uncheck to hide this banner</p>
+    </div>
+
+    <!-- Preview Section (Only for edit mode) -->
+    {% if is_edit and banner.image %}
+    <div class="border-t pt-6 mt-6">
+      <h3 class="text-lg font-medium text-gray-800 mb-4">Preview</h3>
+      <div class="bg-gray-50 rounded-lg p-6">
+        <div class="relative overflow-hidden rounded-lg">
+          <img src="{{ banner.image.url }}" 
+               alt="{{ banner.title }}" 
+               class="w-full h-auto object-cover">
+          <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+            <div class="text-center text-white">
+              {% if banner.title %}
+              <h3 class="text-2xl font-bold mb-2">{{ banner.title }}</h3>
+              {% endif %}
+              {% if banner.description %}
+              <p class="text-sm mb-3">{{ banner.description }}</p>
+              {% endif %}
+              {% if banner.cta_text %}
+              <span class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+                {{ banner.cta_text }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Form Actions -->
+    <div class="pt-4 flex gap-3">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+        {% if is_edit %}Update Banner{% else %}Create Banner{% endif %}
+      </button>
+      <a href="{% url 'admin_ad_banner_list' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Image preview functionality
+  const imageInput = document.querySelector('input[name="image"]');
+  if (imageInput) {
+    imageInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          // Check if preview container exists, if not create it
+          let previewContainer = document.querySelector('.image-preview-container');
+          if (!previewContainer) {
+            previewContainer = document.createElement('div');
+            previewContainer.className = 'image-preview-container mt-3';
+            imageInput.parentElement.appendChild(previewContainer);
+          }
+          
+          previewContainer.innerHTML = `
+            <p class="text-sm text-gray-600 mb-2">Preview:</p>
+            <img src="${event.target.result}" 
+                 alt="Preview" 
+                 class="h-32 w-auto object-cover rounded-lg border border-gray-200">
+          `;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // Date validation
+  const startDateInput = document.querySelector('input[name="start_date"]');
+  const endDateInput = document.querySelector('input[name="end_date"]');
+
+  if (startDateInput && endDateInput) {
+    startDateInput.addEventListener('change', function() {
+      if (endDateInput.value && this.value > endDateInput.value) {
+        alert('Start date cannot be after end date');
+        this.value = '';
+      }
+    });
+
+    endDateInput.addEventListener('change', function() {
+      if (startDateInput.value && this.value < startDateInput.value) {
+        alert('End date cannot be before start date');
+        this.value = '';
+      }
+    });
+
+    // Set minimum date for start date to today
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    const minDateTime = today.toISOString().slice(0, 16);
+    startDateInput.min = minDateTime;
+    
+    // Update end date min when start date changes
+    startDateInput.addEventListener('change', function() {
+      if (this.value) {
+        endDateInput.min = this.value;
+      }
+    });
+  }
+
+  // Form validation before submit
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      const title = document.querySelector('input[name="title"]').value.trim();
+      if (!title) {
+        e.preventDefault();
+        alert('Title is required');
+        return false;
+      }
+      
+      {% if not is_edit %}
+      const image = document.querySelector('input[name="image"]').files[0];
+      if (!image) {
+        e.preventDefault();
+        alert('Banner image is required');
+        return false;
+      }
+      {% endif %}
+      
+      return true;
+    });
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,215 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}Our Restaurants - Food Delivery{% endblock %}
+
+{% block extra_head %}
+  <meta name="description" content="Discover trusted restaurants offering quality food on our food delivery platform.">
+{% endblock %}
+
+{% block content %}
+  <!-- Hero Banner -->
+  <section class="py-8">
+    <div class="text-center bg-[var(--bg-brown)] p-4 rounded shadow">
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-[var(--text-light)]">
+        Our Trusted Restaurants
+      </h1>
+      <p class="text-[var(--text-light)] text-sm mt-2">
+        Discover quality food from verified restaurants across our platform
+      </p>
+    </div>
+  </section>
+
+
+  <!-- Search & Sort Section -->
+  <section class="container mx-auto px-4 py-8 sticky top-0 z-10 bg-[var(--bg-light)] shadow-sm filter-bar">
+    <div class="bg-white rounded-lg p-4 lg:p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Search -->
+        <div class="relative">
+          <input 
+            type="text" 
+            id="restaurantSearch" 
+            placeholder="Search restaurants..."
+            class="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[var(--primary)] transition"
+            value="{{ request.GET.search }}"
+          >
+          <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)]"></i>
+        </div>
+        
+        <!-- Sort By -->
+        <div>
+          <select id="sortFilter" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[var(--primary)] transition">
+            <option value="">Sort By</option>
+            <option value="name-asc" {% if request.GET.sort == 'name-asc' %}selected{% endif %}>Name (A-Z)</option>
+            <option value="name-desc" {% if request.GET.sort == 'name-desc' %}selected{% endif %}>Name (Z-A)</option>
+            <option value="rating-desc" {% if request.GET.sort == 'rating-desc' %}selected{% endif %}>Highest Rated</option>
+            <option value=\"products-desc\" {% if request.GET.sort == 'products-desc' %}selected{% endif %}>Most Items</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Restaurants Grid -->
+  <section class="container mx-auto px-4 py-8">
+    <div id="restaurantsGrid" class="grid grid-cols-2  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 relative">
+      {% for restaurant in vendors %}
+        <a href="{% url 'restaurant_details' restaurant.slug %}" class="restaurant-card bg-white rounded-xl shadow-[var(--shadow-sm)] overflow-hidden block"
+           data-restaurant-name="{{ restaurant.restaurant_name|lower }}"
+           data-rating="{{ restaurant.rating|default:0 }}"
+           data-products="{{ restaurant.menu_items.count }}">
+          <div class="h-40 w-full overflow-hidden">
+            <img 
+              src="{% if restaurant.banner %}{{ restaurant.banner.url }}{% else %}https://via.placeholder.com/400x160{% endif %}\" 
+              alt=\"{{ restaurant.restaurant_name }} Banner\" 
+              class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+              loading="lazy"
+            >
+          </div>
+          <div class="p-6 text-center">
+            <h3 class="text-xl font-semibold text-[var(--text-primary)] mb-2">{{ restaurant.restaurant_name }}</h3>
+            <div class="flex items-center justify-center gap-1 mb-3 text-yellow-400 text-sm">
+              {% with avg_rating=restaurant.rating|default:0 %}
+                {% for i in '12345'|make_list %}
+                  <i class="fas fa-star{% if forloop.counter0 >= avg_rating|floatformat:0 %} text-gray-300{% endif %}"></i>
+                {% endfor %}
+                <span class="text-[var(--text-secondary)] ml-1">({{ avg_rating|floatformat:1 }})</span>
+              {% endwith %}
+            </div>
+            <div class="text-[var(--text-secondary)] text-sm mb-4">
+              <i class="fas fa-utensils text-[var(--primary)] mr-1"></i>
+              {{ restaurant.menu_items.count }} Menu Items
+            </div>
+            <div class="btn btn-primary w-full py-2 text-sm">Order Now</div>
+          </div>
+        </a>
+      {% empty %}
+        <div id="noResults" class="col-span-full text-center py-12">
+          <i class="fas fa-store-slash text-6xl text-gray-300 mb-4"></i>
+          <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-2">No Restaurants Found</h3>
+          <p class="text-[var(--text-secondary)]">Try adjusting your search or sort criteria.</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if vendors.has_other_pages %}
+      <div class="mt-8 flex justify-center space-x-2 flex-wrap">
+        {% if vendors.has_previous %}
+          <a href="?page={{ vendors.previous_page_number }}&search={{ request.GET.search }}&sort={{ request.GET.sort }}"
+             class="px-4 py-2 rounded-lg bg-[var(--bg-light)] text-[var(--text-primary)] hover:bg-[var(--primary)] hover:text-white transition">
+            <i class="fas fa-chevron-left mr-2"></i> Previous
+          </a>
+        {% else %}
+          <span class="px-4 py-2 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">
+            <i class="fas fa-chevron-left mr-2"></i> Previous
+          </span>
+        {% endif %}
+
+        {% for num in vendors.paginator.page_range %}
+          {% if vendors.number == num %}
+            <span class="px-4 py-2 rounded-lg bg-[var(--primary)] text-white font-semibold border border-[var(--primary)]">{{ num }}</span>
+          {% elif num > vendors.number|add:'-3' and num < vendors.number|add:'3' %}
+            <a href="?page={{ num }}&search={{ request.GET.search }}&sort={{ request.GET.sort }}"
+               class="px-4 py-2 rounded-lg bg-[var(--bg-light)] text-[var(--text-primary)] hover:bg-[var(--primary)] hover:text-white transition">{{ num }}</a>
+          {% elif num == 1 or num == vendors.paginator.num_pages %}
+            <a href="?page={{ num }}&search={{ request.GET.search }}&sort={{ request.GET.sort }}"
+               class="px-4 py-2 rounded-lg bg-[var(--bg-light)] text-[var(--text-primary)] hover:bg-[var(--primary)] hover:text-white transition">{{ num }}</a>
+          {% elif forloop.first or forloop.last %}
+            <span class="px-2 py-1 text-gray-400">...</span>
+          {% endif %}
+        {% endfor %}
+
+        {% if vendors.has_next %}
+          <a href="?page={{ vendors.next_page_number }}&search={{ request.GET.search }}&sort={{ request.GET.sort }}"
+             class="px-4 py-2 rounded-lg bg-[var(--bg-light)] text-[var(--text-primary)] hover:bg-[var(--primary)] hover:text-white transition">
+            Next <i class="fas fa-chevron-right ml-2"></i>
+          </a>
+        {% else %}
+          <span class="px-4 py-2 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed">
+            Next <i class="fas fa-chevron-right ml-2"></i>
+          </span>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Partner Restaurant CTA -->
+  <section class="container mx-auto px-4 py-12">
+    <div class="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] rounded-xl p-8 lg:p-12 text-center text-white">
+      <h2 class="text-2xl lg:text-3xl font-bold mb-4">Partner With Us</h2>
+      <p class="text-lg mb-6 opacity-90">Grow your restaurant by joining our delivery network and reaching thousands of hungry customers.</p>
+      <a href="{% url 'restaurant_partner_page'%}" class="btn btn-primary bg-white text-[var(--primary)] px-8 py-3 text-lg font-semibold hover:bg-gray-100 transition">
+        <i class="fas fa-handshake mr-2"></i> Become a Partner Restaurant
+      </a>
+    </div>
+  </section>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    $(document).ready(function() {
+      // Debounce function to limit rapid input events
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      // Filter and sort restaurants (client-side)
+      const filterRestaurants = debounce(function() {
+        const searchTerm = $('#restaurantSearch').val().toLowerCase();
+        const sortOption = $('#sortFilter').val();
+        let visibleCount = 0;
+
+        const $restaurants = $('.restaurant-card').get();
+        if (sortOption) {
+          $restaurants.sort(function(a, b) {
+            if (sortOption === 'name-asc') {
+              return $(a).data('restaurant-name').localeCompare($(b).data('restaurant-name'));
+            } else if (sortOption === 'name-desc') {
+              return $(b).data('restaurant-name').localeCompare($(a).data('restaurant-name'));
+            } else if (sortOption === 'rating-desc') {
+              return $(b).data('rating') - $(a).data('rating');
+            } else if (sortOption === 'products-desc') {
+              return $(b).data('products') - $(a).data('products');
+            }
+          });
+          $('#restaurantsGrid').html($restaurants);
+        }
+
+        $('.restaurant-card').each(function() {
+          const $card = $(this);
+          const restaurantName = $card.data('restaurant-name');
+          const matchesSearch = !searchTerm || restaurantName.includes(searchTerm);
+          if (matchesSearch) {
+            $card.show();
+            visibleCount++;
+          } else {
+            $card.hide();
+          }
+        });
+
+        $('#noResults').toggle(visibleCount === 0);
+      }, 300);
+
+      $('#restaurantSearch').on('input', filterRestaurants);
+      $('#sortFilter').on('change', filterRestaurants);
+
+      // Initialize Swiper for featured restaurants
+      const swiper = new Swiper('.restaurant-swiper', {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        pagination: { el: '.swiper-pagination', clickable: true },
+        breakpoints: { 640: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 1024: { slidesPerView: 4 } },
+        autoplay: { delay: 5000, disableOnInteraction: false },
+      });
+    });
+  </script>
+{% endblock %}

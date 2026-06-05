@@ -1,0 +1,354 @@
+{% extends 'website/components/base.html' %}
+{% load static %}
+
+{% block title %}Become a Restaurant Partner / Resubmit KYC{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-6 sm:py-10 px-4">
+  <div class="container mx-auto max-w-5xl">
+
+    <!-- Header Section -->
+    <div class="text-center mb-6 sm:mb-8">
+  
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--primary)] mb-2">Become a Restaurant Partner</h1>
+      <p class="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">Join our marketplace and submit your KYC documents to start selling your food.</p>
+    </div>
+
+    <form method="POST" action="{% url 'restaurant_partner_page' %}" enctype="multipart/form-data" 
+          class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+      {% csrf_token %}
+
+      <div class="p-6 sm:p-8 md:p-10 space-y-8 sm:space-y-10">
+
+        <!-- ======================= -->
+        <!-- PERSONAL INFO -->
+        <!-- ======================= -->
+        <section>
+          <div class="flex items-center gap-3 mb-4 sm:mb-6 pb-3 border-b-2 border-blue-100">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-user text-blue-600"></i>
+            </div>
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-blue-700">Personal Information</h2>
+          </div>
+          
+          <div class="space-y-4 sm:space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <div>
+                <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                  First Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="first_name" required
+                       class="w-full border-2 border-gray-300 rounded-lg p-3 sm:p-3.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-colors">
+              </div>
+              <div>
+                <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                  Last Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="last_name" required
+                       class="w-full border-2 border-gray-300 rounded-lg p-3 sm:p-3.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-colors">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                Email Address <span class="text-red-500">*</span>
+              </label>
+              <input type="email" name="email" required
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 sm:p-3.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-colors">
+            </div>
+
+            <div>
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                Phone Number <span class="text-red-500">*</span>
+              </label>
+              <input type="text" name="phone" required placeholder="+977 9800000000"
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 sm:p-3.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-colors">
+            </div>
+
+             <div>
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                Citizenship Number <span class="text-red-500">*</span>
+              </label>
+              <input type="number" name="citizenship_number" required placeholder="1254-151-1558"
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 sm:p-3.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-colors">
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================= -->
+        <!-- SHOP INFO -->
+        <!-- ======================= -->
+        <section>
+          <div class="flex items-center gap-3 mb-4 sm:mb-6 pb-3 border-b-2 border-blue-100">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-shopping-bag text-blue-600"></i>
+            </div>
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-blue-700">Shop Information</h2>
+          </div>
+
+          <div class="space-y-4 sm:space-y-5">
+            <div>
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                Shop Name <span class="text-red-500">*</span>
+              </label>
+              <input type="text" name="restaurant_name" required
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 sm:p-3.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-colors">
+            </div>
+
+            <div>
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                Shop Description
+              </label>
+              <textarea name="description" rows="4"
+                        class="w-full border-2 border-gray-300 rounded-lg p-3 sm:p-3.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-colors resize-none"
+                        placeholder="Tell customers about your shop, food items, and what makes you unique..."></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================= -->
+        <!-- ADDRESS INFO -->
+        <!-- ======================= -->
+        <section>
+          <div class="flex items-center gap-3 mb-4 sm:mb-6 pb-3 border-b-2 border-blue-100">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-map-marker-alt text-blue-600"></i>
+            </div>
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-blue-700">Address Information</h2>
+          </div>
+
+          <div class="space-y-4 sm:space-y-5">
+            <div>
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                Full Address <span class="text-red-500">*</span>
+              </label>
+              <textarea name="address" rows="3" required
+                        class="w-full border-2 border-gray-300 rounded-lg p-3 sm:p-3.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-colors resize-none"
+                        placeholder="Street address, ward number, tole..."></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <div>
+                <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                  Province <span class="text-red-500">*</span>
+                </label>
+                <select id="province" name="province" required
+                        class="w-full border-2 border-gray-300 rounded-lg p-3 sm:p-3.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-colors bg-white">
+                  <option value="">Select Province</option>
+                  {% for prov in nepal_locations %}
+                  <option value="{{ prov.province }}">{{ prov.province }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                  District / City <span class="text-red-500">*</span>
+                </label>
+                <select id="district" name="city" required
+                        class="w-full border-2 border-gray-300 rounded-lg p-3 sm:p-3.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-colors bg-white">
+                  <option value="">Select District</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================= -->
+        <!-- KYC DOCUMENTS -->
+        <!-- ======================= -->
+        <section>
+          <div class="flex items-center gap-3 mb-4 sm:mb-6 pb-3 border-b-2 border-blue-100">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-file-alt text-blue-600"></i>
+            </div>
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-blue-700">KYC Documents</h2>
+          </div>
+
+          <!-- Info Box -->
+          <div class="bg-blue-50 border-l-4 border-blue-500 p-4 sm:p-5 rounded-lg mb-6">
+            <div class="flex items-start gap-3">
+              <i class="fas fa-info-circle text-blue-600 text-lg mt-0.5 flex-shrink-0"></i>
+              <div class="text-xs sm:text-sm text-blue-800">
+                <p class="font-semibold mb-1">Document Requirements:</p>
+                <ul class="space-y-1 list-disc list-inside">
+                  <li>Upload clear, high-quality images or PDFs</li>
+                  <li>Ensure all text is legible and not blurred</li>
+                  <li>Documents should not be expired</li>
+                  <li>Maximum file size: 5MB per document</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6 sm:space-y-7">
+            
+            <!-- Shop Logo -->
+            <div class="file-upload-wrapper">
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                <i class="fas fa-image text-blue-500 mr-2"></i>Shop Logo <span class="text-red-500">*</span>
+              </label>
+              <input type="file" name="logo" accept="image/*" required onchange="previewFile(this)" 
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 text-sm sm:text-base bg-gray-50 hover:bg-gray-100 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+              <img class="hidden mt-3 max-h-40 w-auto border-2 border-gray-200 rounded-lg shadow-sm" alt="Preview">
+              <p class="text-xs sm:text-sm text-gray-500 mt-2">Recommended: Square image, min 200x200px</p>
+            </div>
+
+            <!-- Shop Banner -->
+            <div class="file-upload-wrapper">
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                <i class="fas fa-image text-blue-500 mr-2"></i>Shop Banner (Optional)
+              </label>
+              <input type="file" name="banner" accept="image/*" onchange="previewFile(this)" 
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 text-sm sm:text-base bg-gray-50 hover:bg-gray-100 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+              <img class="hidden mt-3 max-h-40 w-auto border-2 border-gray-200 rounded-lg shadow-sm" alt="Preview">
+              <p class="text-xs sm:text-sm text-gray-500 mt-2">Recommended: Wide image, min 1200x400px</p>
+            </div>
+
+            <!-- PAN Document -->
+            <div class="file-upload-wrapper">
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                <i class="fas fa-file-invoice text-blue-500 mr-2"></i>PAN Document <span class="text-red-500">*</span>
+              </label>
+              <input type="file" name="pan_document" accept="image/*,.pdf" required onchange="previewFile(this)" 
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 text-sm sm:text-base bg-gray-50 hover:bg-gray-100 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+              <img class="hidden mt-3 max-h-40 w-auto border-2 border-gray-200 rounded-lg shadow-sm" alt="Preview">
+            </div>
+
+            <div>
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                PAN Number <span class="text-red-500">*</span>
+              </label>
+              <input type="text" name="pan_number" required placeholder="Enter PAN number"
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 sm:p-3.5 text-sm sm:text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-colors">
+            </div>
+
+            <!-- Citizenship Documents -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="file-upload-wrapper">
+                <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                  <i class="fas fa-id-card text-blue-500 mr-2"></i>Citizenship Front <span class="text-red-500">*</span>
+                </label>
+                <input type="file" name="citizenship_front" accept="image/*" required onchange="previewFile(this)" 
+                       class="w-full border-2 border-gray-300 rounded-lg p-3 text-sm sm:text-base bg-gray-50 hover:bg-gray-100 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                <img class="hidden mt-3 max-h-40 w-full object-cover border-2 border-gray-200 rounded-lg shadow-sm" alt="Preview">
+              </div>
+
+              <div class="file-upload-wrapper">
+                <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                  <i class="fas fa-id-card-alt text-blue-500 mr-2"></i>Citizenship Back <span class="text-red-500">*</span>
+                </label>
+                <input type="file" name="citizenship_back" accept="image/*" required onchange="previewFile(this)" 
+                       class="w-full border-2 border-gray-300 rounded-lg p-3 text-sm sm:text-base bg-gray-50 hover:bg-gray-100 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                <img class="hidden mt-3 max-h-40 w-full object-cover border-2 border-gray-200 rounded-lg shadow-sm" alt="Preview">
+              </div>
+            </div>
+
+            <!-- Company Registration -->
+            <div class="file-upload-wrapper">
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                <i class="fas fa-certificate text-blue-500 mr-2"></i>Company Registration Certificate (Optional)
+              </label>
+              <input type="file" name="company_registration" accept="image/*,.pdf" onchange="previewFile(this)" 
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 text-sm sm:text-base bg-gray-50 hover:bg-gray-100 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+              <img class="hidden mt-3 max-h-40 w-auto border-2 border-gray-200 rounded-lg shadow-sm" alt="Preview">
+            </div>
+
+            <!-- QR Payment -->
+            <div class="file-upload-wrapper">
+              <label class="block text-sm sm:text-base font-medium text-gray-700 mb-2">
+                <i class="fas fa-qrcode text-blue-500 mr-2"></i>QR Payment Image (eSewa / Bank / Khalti) <span class="text-red-500">*</span>
+              </label>
+              <input type="file" name="qr_image" accept="image/*" required onchange="previewFile(this)" 
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 text-sm sm:text-base bg-gray-50 hover:bg-gray-100 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+              <img class="hidden mt-3 max-h-40 w-auto border-2 border-gray-200 rounded-lg shadow-sm" alt="Preview">
+              <p class="text-xs sm:text-sm text-gray-500 mt-2">Upload your payment QR code for receiving payments</p>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Submit Section -->
+      <div class="bg-gray-50 border-t border-gray-200 px-6 sm:px-8 md:px-10 py-6 sm:py-8">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+       
+          <button type="submit" 
+                  class="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-blue-700 active:bg-blue-800 text-white px-8 py-3.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all text-sm sm:text-base cursor-pointer">
+            <i class="fas fa-check-circle"></i>
+            Register & Verify OTP
+          </button>
+        </div>
+      </div>
+
+    </form>
+
+   
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const locations = {{ nepal_locations|safe }};
+  const provinceSelect = document.getElementById('province');
+  const districtSelect = document.getElementById('district');
+
+  provinceSelect.addEventListener('change', function() {
+    const selectedProvince = this.value;
+    districtSelect.innerHTML = '<option value="">Select District</option>';
+    const prov = locations.find(p => p.province === selectedProvince);
+    if (prov) {
+      prov.districts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.text = d;
+        districtSelect.appendChild(opt);
+      });
+    }
+  });
+});
+
+// Preview uploaded images
+function previewFile(input) {
+  const file = input.files[0];
+  const wrapper = input.closest('.file-upload-wrapper');
+  const img = wrapper.querySelector('img');
+
+  if (!file) return;
+
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      img.src = e.target.result;
+      img.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+  } else {
+    img.classList.add('hidden');
+  }
+}
+
+// Form validation feedback
+const form = document.querySelector('form');
+form.addEventListener('submit', function(e) {
+  const requiredInputs = form.querySelectorAll('[required]');
+  let isValid = true;
+  
+  requiredInputs.forEach(input => {
+    if (!input.value) {
+      isValid = false;
+      input.classList.add('border-red-500');
+    } else {
+      input.classList.remove('border-red-500');
+    }
+  });
+  
+  if (!isValid) {
+    e.preventDefault();
+    alert('Please fill in all required fields');
+  }
+});
+</script>
+{% endblock %}

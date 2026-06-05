@@ -1,0 +1,236 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+    <h1 class="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+      <i class="fas fa-wallet text-blue-600"></i>
+      Vendor Payments – {{ vendor.shop_name }}
+    </h1>
+    <a href="{% url 'admin_payments_overview' %}" 
+       class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 flex items-center gap-2 transition">
+      <i class="fas fa-arrow-left"></i> Back to Overview
+    </a>
+  </div>
+
+  <!-- Vendor Info -->
+  <div class="bg-white rounded-xl shadow p-5 overflow-x-auto">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 min-w-[600px]">
+      <div>
+        <div class="text-gray-500 text-sm flex items-center gap-1">
+          <i class="fas fa-store text-gray-400"></i> Vendor
+        </div>
+        <div class="font-semibold">{{ vendor.shop_name }}</div>
+      </div>
+      <div>
+        <div class="text-gray-500 text-sm flex items-center gap-1">
+          <i class="fas fa-envelope text-gray-400"></i> Email
+        </div>
+        <div>{{ vendor.user.email }}</div>
+      </div>
+      <div>
+        <div class="text-gray-500 text-sm flex items-center gap-1">
+          <i class="fas fa-phone text-gray-400"></i> Phone
+        </div>
+        <div>{{ vendor.phone|default:"-" }}</div>
+      </div>
+      <div>
+        <div class="text-gray-500 text-sm flex items-center gap-1">
+          <i class="fas fa-user text-gray-400"></i> Owner
+        </div>
+        <div>{{ vendor.user.first_name }} {{ vendor.user.last_name }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Total Earnings -->
+    <div class="bg-white rounded-xl shadow hover:shadow-lg transition p-5 text-center">
+      <div class="flex justify-center mb-2">
+        <div class="bg-blue-100 p-3 rounded-full">
+          <i class="fas fa-coins text-blue-600 text-xl"></i>
+        </div>
+      </div>
+      <h3 class="text-gray-500 text-sm font-medium">Total Earnings</h3>
+      <p class="text-2xl font-bold text-gray-800 mt-1">Rs. {{ total_earning }}</p>
+    </div>
+
+    <!-- Net Earnings -->
+    <div class="bg-white rounded-xl shadow hover:shadow-lg transition p-5 text-center">
+      <div class="flex justify-center mb-2">
+        <div class="bg-purple-100 p-3 rounded-full">
+          <i class="fas fa-wallet text-purple-600 text-xl"></i>
+        </div>
+      </div>
+      <h3 class="text-gray-500 text-sm font-medium">Net Earnings</h3>
+      <p class="text-2xl font-bold text-gray-800 mt-1">Rs. {{ net_earning }}</p>
+    </div>
+
+    <!-- Admin Commission -->
+    <div class="bg-white rounded-xl shadow hover:shadow-lg transition p-5 text-center">
+      <div class="flex justify-center mb-2">
+        <div class="bg-yellow-100 p-3 rounded-full">
+          <i class="fas fa-percent text-yellow-600 text-xl"></i>
+        </div>
+      </div>
+      <h3 class="text-gray-500 text-sm font-medium">
+        Admin Commission ({{ commission_rate_percent }}%)
+      </h3>
+      <p class="text-2xl font-bold text-gray-800 mt-1">Rs. {{ total_commission }}</p>
+    </div>
+
+    <!-- Wallet Balance -->
+    <div class="bg-white rounded-xl shadow hover:shadow-lg transition p-5 text-center">
+      <div class="flex justify-center mb-2">
+        <div class="bg-green-100 p-3 rounded-full">
+          <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
+        </div>
+      </div>
+      <h3 class="text-gray-500 text-sm font-medium">Wallet Balance</h3>
+      <p class="text-2xl font-bold text-gray-800 mt-1">Rs. {{ wallet_balance }}</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="bg-white rounded-xl shadow overflow-hidden">
+    <!-- Tab Buttons -->
+    <div class="border-b flex flex-wrap">
+      <button class="tab-link active bg-blue-50 text-blue-700 px-4 py-2 text-sm font-medium flex items-center gap-2 transition" data-tab="orders">
+        <i class="fas fa-shopping-cart"></i> Orders
+      </button>
+      <button class="tab-link px-4 py-2 text-sm font-medium flex items-center gap-2 transition" data-tab="payouts">
+        <i class="fas fa-hand-holding-usd"></i> Payout History
+      </button>
+    </div>
+
+    <!-- Orders Tab -->
+    <div id="tab-orders" class="p-4 tab-content">
+      <div class="overflow-x-auto">
+        <table id="ordersTable" class="min-w-[800px] w-full text-sm text-left border-collapse">
+          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+            <tr>
+              <th class="px-4 py-2">Order ID</th>
+              <th class="px-4 py-2">Date</th>
+              <th class="px-4 py-2">Order Amount</th>
+              <th class="px-4 py-2">Admin Commission</th>
+              <th class="px-4 py-2">Vendor Earnings</th>
+              <th class="px-4 py-2">Payment Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in orders_data %}
+            <tr class="border-b hover:bg-gray-50">
+              <td class="px-4 py-2 font-medium">{{ row.order.order_number }}</td>
+              <td class="px-4 py-2">{{ row.order.created_at|date:"Y-m-d H:i" }}</td>
+              <td class="px-4 py-2">Rs. {{ row.amount }}</td>
+              <td class="px-4 py-2">Rs. {{ row.admin_commission }}</td>
+              <td class="px-4 py-2">Rs. {{ row.vendor_earning }}</td>
+              <td class="px-4 py-2">
+                {% if row.payment_status == 'paid' %}
+                  <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 justify-center">
+                    <i class="fas fa-check-circle"></i> Paid
+                  </span>
+                {% elif row.payment_status == 'unpaid' %}
+                  <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 justify-center">
+                    <i class="fas fa-hourglass-half"></i> Unpaid
+                  </span>
+                {% else %}
+                  <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 justify-center">
+                    <i class="fas fa-info-circle"></i> {{ row.payment_status|title }}
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-gray-500 py-4">No orders found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Payouts Tab -->
+    <div id="tab-payouts" class="p-4 tab-content hidden">
+      <div class="overflow-x-auto">
+        <table id="payoutsTable" class="min-w-[800px] w-full text-sm text-left border-collapse">
+          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+            <tr>
+              <th class="px-4 py-2">Date</th>
+              <th class="px-4 py-2">Amount</th>
+              <th class="px-4 py-2">Status</th>
+              <th class="px-4 py-2">Method</th>
+              <th class="px-4 py-2">Transaction ID</th>
+              <th class="px-4 py-2">Admin Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in payouts %}
+            <tr class="border-b hover:bg-gray-50">
+              <td class="px-4 py-2">{{ p.created_at|date:"Y-m-d H:i" }}</td>
+              <td class="px-4 py-2 font-medium">Rs. {{ p.requested_amount }}</td>
+              <td class="px-4 py-2">
+                {% if p.status == 'paid' %}
+                  <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    <i class="fas fa-check-circle"></i> Paid
+                  </span>
+                {% elif p.status == 'rejected' %}
+                  <span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    <i class="fas fa-times-circle"></i> Rejected
+                  </span>
+                {% else %}
+                  <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    <i class="fas fa-hourglass-half"></i> Pending
+                  </span>
+                {% endif %}
+              </td>
+              <td class="px-4 py-2 flex items-center gap-1">
+                <i class="fas fa-wallet text-gray-500"></i> {{ p.method|default:"-" }}
+              </td>
+              <td class="px-4 py-2 flex items-center gap-1">
+                <i class="fas fa-receipt text-gray-500"></i> {{ p.transaction_id|default:"-" }}
+              </td>
+              <td class="px-4 py-2">{{ p.admin_response|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-gray-500 py-4">No payouts recorded.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(function(){
+    // Tabs functionality
+    $('.tab-link').on('click', function(){
+        $('.tab-link').removeClass('active bg-blue-50 text-blue-700');
+        $(this).addClass('active bg-blue-50 text-blue-700');
+        const tab = $(this).data('tab');
+        $('.tab-content').addClass('hidden');
+        $('#tab-' + tab).removeClass('hidden');
+    });
+
+    // DataTables setup
+    $('#ordersTable').DataTable({
+        stripeClasses: [],
+        responsive: true,
+        autoWidth: false,
+        language: { search: "Search Orders:" }
+    });
+    $('#payoutsTable').DataTable({
+        stripeClasses: [],
+        responsive: true,
+        autoWidth: false,
+        language: { search: "Search Payouts:" }
+    });
+});
+</script>
+{% endblock %}

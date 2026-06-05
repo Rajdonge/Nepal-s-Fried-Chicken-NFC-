@@ -1,0 +1,318 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}{{ restaurant.restaurant_name }} - Restaurant Details{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+
+  <!-- Restaurant Header -->
+  <div class="restaurant-header bg-white rounded-3xl shadow-[var(--shadow-sm)] mb-12 overflow-hidden">
+    <div class="relative w-full h-64 lg:h-80">
+      <img src="{% if restaurant.banner %}{{ restaurant.banner.url }}{% else %}https://via.placeholder.com/1200x400?text={{ restaurant.restaurant_name|urlencode }}{% endif %}" 
+           alt="{{ restaurant.restaurant_name }} Banner" 
+           class="w-full h-full object-cover transition-transform duration-500">
+      <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+      <div class="absolute bottom-4 left-4">
+        <img src="{% if restaurant.logo %}{{ restaurant.logo.url }}{% else %}https://via.placeholder.com/100?text=Logo{% endif %}" 
+             alt="{{ restaurant.restaurant_name }} Logo" 
+             class="w-24 h-24 rounded-full border-4 border-white shadow-md object-cover">
+      </div>
+    </div>
+    <div class="p-6 lg:p-8">
+      <h1 class="text-3xl lg:text-4xl font-bold text-[var(--text-primary)] mb-2">{{ restaurant.restaurant_name }}</h1>
+      <div class="flex items-center gap-2 mb-3">
+        {% with avg_rating=restaurant.rating|floatformat:1 %}
+          {% for i in '12345'|make_list %}
+            <i class="fas fa-star {% if forloop.counter0 >= avg_rating|floatformat:0 %}text-gray-300{% else %}text-yellow-400{% endif %}"></i>
+          {% endfor %}
+          <span class="text-[var(--text-secondary)] text-sm">{{ avg_rating }}</span>
+        {% endwith %}
+      </div>
+      <p class="text-[var(--text-secondary)] text-base mb-4">{{ restaurant.description|default:"Discover quality food from this trusted restaurant." }}</p>
+      <div class="flex flex-wrap gap-6 text-[var(--text-secondary)] text-sm">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-utensils text-[var(--primary)]"></i>
+          <span>{{ restaurant.menu_items.count }} Menu Items</span>
+        </div>
+        {% if restaurant.verification_status == 'approved' %}
+          <div class="flex items-center gap-2">
+            <i class="fas fa-check-circle text-[var(--success)]"></i>
+            <span>Verified Restaurant</span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Restaurant Menu Section -->
+  <section class="mb-12 ml-15 mr-15">
+    <div class="flex flex-col lg:flex-row justify-between items-start gap-4 mb-6 ">
+      <h2 class="text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">Menu</h2>
+      <input type="text" id="productSearch" placeholder="Search menu items..." 
+             class="px-4 py-2 border rounded-lg focus:outline-none focus:border-[var(--primary)] transition w-full lg:w-64">
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 ">
+
+      <!-- LEFT: Menu Categories & Items -->
+      <div class="lg:col-span-3 bg-white rounded-xl border border-gray-200 p-4 h-fit sticky top-24">
+      
+        
+        <div class="space-y-3 max-h-96 overflow-y-auto">
+  {% regroup menu_items|dictsort:"section.id" by section as items_by_section %}
+  
+  {% for group in items_by_section %}
+  <div class="menu-section">
+    <h4 class="text-sm font-semibold text-gray-700 px-3 py-2 bg-gray-100 rounded-lg mb-2">
+      {{ group.grouper.name }}
+    </h4>
+    
+    <div class="space-y-1 ml-10">
+      {% for menu_item in group.list %}
+      <button class="menu-item-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-all cursor-pointer border border-transparent"
+              data-item-id="{{ menu_item.id }}"
+              data-item-name="{{ menu_item.name }}"
+              data-item-price="{{ menu_item.price }}"
+              data-item-description="{{ menu_item.description|default:'' }}"
+              data-item-image="{{ menu_item.image.url|default:'https://via.placeholder.com/300' }}"
+              data-item-available="{{ menu_item.is_available|yesno:'true,false' }}"
+              data-item-section="{{ menu_item.section.name }}"
+              data-item-veg="{{ menu_item.is_vegetarian|yesno:'true,false' }}"
+              data-item-prep="{{ menu_item.prep_time }}">
+        <div class="flex justify-between items-center">
+          <span class="line-clamp-1">{{ menu_item.name }}</span>
+          <span class="text-xs font-semibold text-orange-600">Rs {{ menu_item.price|floatformat:0 }}</span>
+        </div>
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+      </div>
+
+      <!-- RIGHT: Item Details -->
+      <div class="lg:col-span-2 flex justify-center">
+        <div class="bg-white rounded-xl border border-gray-200 p-6 w-full max-w-xl">
+        <div id="itemDetailsContainer" class="flex items-center justify-center h-96 text-center">
+          <div>
+            <i class="fas fa-click text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500 text-lg">Select a menu item to view details</p>
+          </div>
+        </div>
+
+        <div id="itemDetails" class="hidden space-y-4">
+          <img id="itemDetailsImage" src="" alt="" class="w-full h-40 object-contain rounded-lg bg-gray-100">
+          
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <h2 id="itemDetailsName" class="text-lg font-bold text-[var(--text-primary)]"></h2>
+                 <p id="itemDetailsDescription" class="text-gray-600 text-xs leading-relaxed mb-1"></p>
+
+                 
+              </div>
+              <span id="itemDetailsAvailability" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700"></span>
+            </div>
+
+            <p id="itemDetailsPrice" class="text-xl font-bold text-orange-600 mb-1"></p>
+
+
+            <!-- Details Grid -->
+            <div class="grid grid-cols-2 gap-2 bg-gray-50 p-1 rounded-lg mb-1">
+              <div class="text-center">
+                <p id="itemDetailsPrepTime" class="text-sm text-gray-600"></p>
+              </div>
+              <div class="text-center">
+                <p id="itemDetailsType" class="text-sm text-gray-600"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quantity Controls -->
+          <div class="flex items-center gap-2 pt-2">
+            <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+              <button type="button" class="decreaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 transition">
+                <i class="fas fa-minus text-xs"></i>
+              </button>
+              <input type="number" class="qtyInput w-10 text-center text-xs border-x border-gray-300 focus:outline-none font-medium" value="1" min="1" max="10">
+              <button type="button" class="increaseQty px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 transition">
+                <i class="fas fa-plus text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Add to Cart Button -->
+            <button type="button" class="add-to-cart flex-1 flex items-center justify-center gap-1 px-3 py-1.5 bg-orange-500 text-white font-semibold text-sm rounded-lg hover:bg-orange-600 transition">
+              <i class="fa-solid fa-cart-shopping text-sm"></i>Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+  
+  function showToast(message, type = 'info') {
+    toastr.options = {
+      closeButton: true,
+      progressBar: true,
+      positionClass: "toast-top-right",
+      timeOut: 3000,
+      preventDuplicates: true
+    };
+    toastr[type](message);
+  }
+
+  // STEP 1: Menu item click - populate basic details
+  $(document).on('click', '.menu-item-btn', function() {
+    const $btn = $(this);
+    const itemId = $btn.data('item-id');
+    const itemName = $btn.data('item-name');
+    const itemPrice = $btn.data('item-price');
+    const itemDescription = $btn.data('item-description');
+    const itemImage = $btn.data('item-image');
+    const itemAvailable = $btn.data('item-available');
+    const itemSection = $btn.data('item-section');
+    const itemVeg = $btn.data('item-veg');
+    const itemPrep = $btn.data('item-prep');
+
+    // Highlight selected button
+    $('.menu-item-btn').removeClass('bg-orange-100 border-orange-500');
+    $btn.addClass('bg-orange-100 border-orange-500');
+
+    // Populate details
+    $('#itemDetailsImage').attr('src', itemImage).attr('alt', itemName);
+    $('#itemDetailsName').text(itemName);
+    $('#itemDetailsSection').text(itemSection);
+    $('#itemDetailsPrice').text('Rs ' + parseInt(itemPrice));
+    $('#itemDetailsDescription').html(itemDescription || 'Delicious food item');
+    
+    // Populate prep time
+    $('#itemDetailsPrepTime').html(`<i class="fas fa-clock text-orange-500 mr-1"></i>${itemPrep} min`);
+    
+    // Populate veg/non-veg
+    $('#itemDetailsType').html(itemVeg === 'true' ? '<i class="fas fa-leaf text-green-600 mr-1"></i>Vegetarian' : '<i class="fas fa-drumstick-bite text-red-600 mr-1"></i>Non-Veg');
+    
+    // Populate availability
+    if (itemAvailable === 'false') {
+      $('#itemDetailsAvailability').removeClass('bg-green-100 text-green-700').addClass('bg-red-100 text-red-700').text('Out of Stock');
+    } else {
+      $('#itemDetailsAvailability').removeClass('bg-red-100 text-red-700').addClass('bg-green-100 text-green-700').text('Available');
+    }
+
+    // Store item ID in add-to-cart button
+    $('.add-to-cart').data('item-id', itemId);
+
+    // Reset quantity
+    $('.qtyInput').val(1);
+
+    // Show details, hide placeholder
+    $('#itemDetailsContainer').addClass('hidden');
+    $('#itemDetails').removeClass('hidden');
+  });
+
+  // STEP 2: Quantity Controls - Increase
+  $(document).on('click', '.increaseQty', function(e) {
+    e.preventDefault();
+    const $input = $(this).siblings('.qtyInput');
+    const max = parseInt($input.attr('max')) || 10;
+    let current = parseInt($input.val()) || 1;
+    
+    if (current < max) {
+      $input.val(current + 1);
+    } else {
+      showToast(`Maximum available quantity is ${max}`, 'warning');
+    }
+  });
+
+  // STEP 2: Quantity Controls - Decrease
+  $(document).on('click', '.decreaseQty', function(e) {
+    e.preventDefault();
+    const $input = $(this).siblings('.qtyInput');
+    let current = parseInt($input.val()) || 1;
+    if (current > 1) {
+      $input.val(current - 1);
+    }
+  });
+
+  // STEP 3: Add to Cart
+  $(document).on('click', '.add-to-cart', function(e) {
+    e.preventDefault();
+    const $btn = $(this);
+    const itemId = $btn.data('item-id');
+    const qty = parseInt($('.qtyInput').val()) || 1;
+    const itemName = $('#itemDetailsName').text();
+
+    if (!itemId) {
+      showToast('Please select an item first', 'warning');
+      return;
+    }
+
+    const originalHtml = $btn.html();
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+    $.ajax({
+      url: '/api/cart/add/',
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+      contentType: 'application/json',
+      data: JSON.stringify({
+        menu_item_id: itemId,
+        quantity: qty,
+        option_ids: null
+      }),
+      success: function(response) {
+        if (response.success) {
+          showToast(`${qty} × ${itemName} added to cart!`, 'success');
+          $('#desktopCartBadge, #mobileCartBadge').text(response.cart_count).show();
+          $('.qtyInput').val(1);
+        } else {
+          showToast(response.message || 'Failed to add to cart', 'error');
+        }
+      },
+      error: function(xhr) {
+        const response = xhr.responseJSON;
+        if (xhr.status === 401 || xhr.status === 403) {
+          showToast('Please login to add items to cart', 'warning');
+          setTimeout(() => {
+            window.location.href = '{% url "login_page" %}?next={{ request.path }}';
+          }, 1500);
+        } else {
+          showToast(response?.message || 'An error occurred', 'error');
+        }
+      },
+      complete: function() {
+        $btn.prop('disabled', false).html(originalHtml);
+      }
+    });
+  });
+
+  // Search functionality
+  $('#productSearch').on('input', function() {
+    const query = $(this).val().toLowerCase().trim();
+    
+    if (!query) {
+      $('.menu-item-btn').show();
+    } else {
+      $('.menu-item-btn').each(function() {
+        const itemName = $(this).data('item-name').toLowerCase();
+        if (itemName.includes(query)) {
+          $(this).show();
+        } else {
+          $(this).hide();
+        }
+      });
+    }
+  });
+
+});
+</script>
+{% endblock %}

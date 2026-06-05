@@ -1,0 +1,93 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-ticket-alt"></i> Coupons</h1>
+    <a href="{% url 'admin_coupon_add' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">+ Add Coupon</a>
+  </div>
+
+  <div class="overflow-x-auto">
+    {% if coupons %}
+    <table id="couponsTable" class="display w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 text-left">Code</th>
+          <th class="px-4 py-3 text-left">Type</th>
+          <th class="px-4 py-3 text-left">Value</th>
+          <th class="px-4 py-3 text-left">Usage (Total/User)</th>
+          <th class="px-4 py-3 text-left">Active</th>
+          <th class="px-4 py-3 text-left">Valid From</th>
+          <th class="px-4 py-3 text-left">Valid To</th>
+          <th class="px-4 py-3 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in coupons %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium">{{ c.code }}</td>
+          <td class="px-4 py-3">{{ c.get_discount_type_display }}</td>
+          <td class="px-4 py-3">Rs {{ c.discount_value|floatformat:2 }}</td>
+          <td class="px-4 py-3">
+            {{ c.used_count }} 
+            {% if c.usage_limit %}/ {{ c.usage_limit }}{% endif %}
+          </td>
+          <td class="px-4 py-3">
+            {% if c.is_active %}
+              <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Active</span>
+            {% else %}
+              <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3">{{ c.valid_from|date:"Y-m-d H:i" }}</td>
+          <td class="px-4 py-3">{{ c.valid_to|date:"Y-m-d H:i" }}</td>
+          <td class="px-4 py-3 text-center space-x-4">
+            <!-- Edit Icon -->
+            <a href="{% url 'admin_coupon_update' c.id %}" class="text-blue-600 hover:text-blue-800" title="Edit">
+              <i class="fas fa-edit"></i>
+            </a>
+            <!-- Delete Icon -->
+            <a href="{% url 'admin_coupon_delete' c.id %}" class="text-red-600 hover:text-red-800" title="Delete" onclick="return confirm('Delete this coupon?')">
+              <i class="fas fa-trash-alt"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-gray-500 py-12 border border-gray-200 rounded-lg">
+      <i class="fas fa-ticket-alt text-4xl text-gray-300 mb-3"></i>
+      <div class="font-medium">No coupons found.</div>
+      <a href="{% url 'admin_coupon_add' %}" class="inline-block mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+        + Add First Coupon
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if coupons %}
+<script>
+$(document).ready(function () {
+  $('#couponsTable').DataTable({
+    pageLength: 10,
+    lengthChange: true,
+    searching: true,
+    ordering: true,
+    responsive: true,
+    language: {
+      search: "_INPUT_",
+      searchPlaceholder: "Search coupons..."
+    },
+    columnDefs: [
+      { orderable: false, targets: [7] } // Actions column (index 7, zero-based)
+    ]
+  });
+});
+</script>
+{% endif %}
+{% endblock %}

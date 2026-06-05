@@ -1,0 +1,42 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+  <div class="bg-white rounded-2xl shadow-lg p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold">Staff Profile</h1>
+        <p class="text-sm text-gray-600">Manage your profile and view your district</p>
+      </div>
+     
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white rounded p-4 border">
+        <p><strong>First name:</strong> {{ user.first_name|default:'-' }}</p>
+        <p><strong>Last name:</strong> {{ user.last_name|default:'-' }}</p>
+        <p><strong>Email:</strong> {{ user.email|default:'-' }}</p>
+      </div>
+
+      <div class="bg-white rounded p-4 border">
+        <p><strong>Role:</strong> Staff</p>
+        <p><strong>District:</strong> {{ staff_district|default:"—" }}</p>
+        <p><strong>Joined:</strong> {{ user.date_joined|date:"F j, Y" }}</p>
+      </div>
+      
+    </div>
+    
+  </div>
+  <div class="pt-6 text-center">
+
+          <p class="text-gray-500 text-sm">
+            <i class="fas fa-lock mr-1"></i> 
+            Only administrators have permission to edit profiles or change staff passwords. Please contact your administrator if you need your password reset.
+          </p>
+        
+
+        </div>
+</div>
+
+{% endblock %}

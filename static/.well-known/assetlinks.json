@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.hellobajar.twa",
+    "sha256_cert_fingerprints": [
+      "67:90:94:B9:D8:E2:7D:68:B6:9B:19:41:CD:AD:A5:EE:36:BA:BE:E3:24:80:4C:EC:13:47:8D:B5:B1:93:03:94"
+    ]
+  }
+}]

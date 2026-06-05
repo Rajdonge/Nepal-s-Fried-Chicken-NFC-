@@ -1,0 +1,133 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Low Stock Products</h1>
+    <div class="space-x-2">
+      <a href="{% url 'restaurant_menu_items_list' %}" class="text-sm text-blue-600 hover:text-blue-800">All Products</a>
+    
+    </div>
+  </div>
+
+  <!-- Filter Form -->
+  <form method="get" class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search by name, SKU, brand..." class="border border-gray-300 rounded-lg p-2.5" />
+    <select name="category" class="border border-gray-300 rounded-lg p-2.5">
+      <option value="">All Categories</option>
+      {% for c in categories %}
+        <option value="{{ c.id }}" {% if request.GET.category|default:'' == c.id|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+   
+    <div class="md:col-span-3">
+      <button class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition">Filter</button>
+    </div>
+  </form>
+
+  <!-- Low Stock Products Table -->
+  <div class="overflow-x-auto">
+    <table class="w-full border border-gray-200 rounded-lg text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 text-left">ID</th>
+          <th class="px-4 py-3 text-left">Image</th>
+          <th class="px-4 py-3 text-left">Name</th>
+          <th class="px-4 py-3 text-left">Category</th>
+         
+          <th class="px-4 py-3 text-left">Price</th>
+          <th class="px-4 py-3 text-left">Stock</th>
+          <th class="px-4 py-3 text-left">Low Stock Alert</th>
+          <th class="px-4 py-3 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3">{{ product.id }}</td>
+
+          <!-- Main Image -->
+          <td class="px-4 py-3">
+            {% if product.main_image %}
+              <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="h-10 w-10 object-cover rounded"/>
+            {% else %}
+              <span class="text-gray-400">No image</span>
+            {% endif %}
+          </td>
+
+          <td class="px-4 py-3 font-medium">{{ product.name|truncatechars:25 }}</td>
+         <td class="px-4 py-3">
+  <div class="flex flex-col">
+    <span class="font-medium text-gray-800">{{ product.category.name }}</span>
+
+    {% if product.category.subcategories.all %}
+      <span class="text-xs text-gray-600">
+        {% for sub in product.category.subcategories.all %}
+          {{ sub.name }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      </span>
+    {% else %}
+      <span class="text-xs text-gray-400">No Subcategory</span>
+    {% endif %}
+  </div>
+</td>
+
+          <td class="px-4 py-3">Rs. {{ product.price }}</td>
+          <td class="px-4 py-3">{{ product.stock }}</td>
+
+          <!-- Low Stock Badge -->
+          <td class="px-4 py-3">
+            {% if product.low_stock_alert %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                <i class="fas fa-exclamation-triangle mr-1"></i> {{ product.low_stock_alert }}
+              </span>
+            {% else %}
+              <span class="text-gray-400 text-xs">-</span>
+            {% endif %}
+          </td>
+
+          <!-- Actions with Icons -->
+          <td class="px-4 py-3 text-center">
+            <div class="inline-flex items-center space-x-3 justify-center">
+              <a href="{% url 'restaurant_menu_item_update' product.id %}" class="text-blue-600 hover:text-blue-800" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+              <a href="{% url 'restaurant_menu_item_delete' product.id %}" class="text-red-600 hover:text-red-800" title="Delete" onclick="return confirm('Delete this product?')">>
+                <i class="fas fa-trash-alt"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" class="text-center text-gray-500 py-6">No low stock products.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  $(document).ready(function () {
+    $('table').DataTable({
+      pageLength: 10,
+      lengthChange: true,
+      searching: true,
+      ordering: true,
+      responsive: true,
+      language: {
+        search: "_INPUT_",
+        searchPlaceholder: "Search products..."
+      },
+      columnDefs: [
+        { orderable: false, targets: [1, 8, 9] } // Disable sorting for image, low stock, actions
+      ]
+    });
+  });
+</script>
+{% endblock %}

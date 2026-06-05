@@ -1,0 +1,273 @@
+{% extends 'dashboard/components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Add Menu Item</h1>
+    <a href="{% url 'admin_menuItems_list' %}" class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      Back to list
+    </a>
+  </div>
+
+  <form method="post" action="{% url 'admin_menuItem_add' %}" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Basic Information Section -->
+    <div class="border-b pb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Basic Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% comment %} <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Restaurant <span class="text-red-600">*</span>
+          </label>
+          <select name="restaurant" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+            <option value="">Select a restaurant</option>
+            {% for r in restaurants %}
+              <option value="{{ r.id }}">{{ r.restaurant_name }}</option>
+            {% endfor %}
+          </select>
+        </div> {% endcomment %}
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Menu Section <span class="text-red-600">*</span>
+          </label>
+          <select name="menu_section" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+            <option value="">Select a menu section</option>
+            {% for section in menu_sections %}
+              <option value="{{ section.id }}">
+                {{ section.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Item Name <span class="text-red-600">*</span>
+          </label>
+          <input type="text" name="name" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter item name" required>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Description <span class="text-red-600">*</span>
+          </label>
+          <textarea id="description" name="description" rows="4" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Describe your product..." required></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing & Inventory Section -->
+    <div class="border-b pb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Pricing & Inventory</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Price (Rs) <span class="text-red-600">*</span>
+          </label>
+          <input type="number" step="0.01" name="price" min="0" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0.00" required>
+        </div>
+
+        <div class="pt-6 pl-10">
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" name="is_available" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500" checked>
+            <span class="ml-2 text-sm font-medium text-gray-700">Available</span>
+          </label>
+          <p class="text-xs text-gray-500 mt-1">Is this item currently available?</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item Details Section -->
+    <div class="border-b pb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Item Details</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-3">
+            Item Type <span class="text-red-600">*</span>
+          </label>
+          <div class="space-y-2">
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="radio" name="is_vegetarian" value="1" class="w-4 h-4 text-green-600 border-gray-300 focus:ring-2 focus:ring-green-500" required>
+              <span class="ml-2 text-sm font-medium text-gray-700">Vegetarian</span>
+            </label>
+            <br>
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="radio" name="is_vegetarian" value="0" class="w-4 h-4 text-red-600 border-gray-300 focus:ring-2 focus:ring-red-500">
+              <span class="ml-2 text-sm font-medium text-gray-700">Non-Vegetarian</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Preparation Time (minutes) <span class="text-red-600">*</span>
+          </label>
+          <input type="number" name="prep_time" min="1" value="15" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 20" required>
+          <p class="text-xs text-gray-500 mt-1">How many minutes to prepare this item?</p>
+        </div>
+
+        <div>
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" name="is_featured" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+            <span class="ml-2 text-sm font-medium text-gray-700">Featured</span>
+          </label>
+          <p class="text-xs text-gray-500 mt-1">Featured items appear on top</p>
+        </div>
+
+        <!-- Favorite Field - Added here -->
+        <div>
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" name="is_favorite" class="w-4 h-4 text-yellow-500 border-gray-300 rounded focus:ring-2 focus:ring-yellow-500">
+            <span class="ml-2 text-sm font-medium text-gray-700">Mark as Favorite</span>
+          </label>
+          <p class="text-xs text-gray-500 mt-1">Favorite items are highlighted and promoted</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Images Section -->
+    <div class="border-b pb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Item Image</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Main Image <span class="text-red-600">*</span>
+          </label>
+          <input type="file" name="main_image" id="main_image" accept=".jpg,.jpeg,.png,.gif" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required>
+          <p class="text-xs text-gray-500 mt-1">Allowed: .jpg, .jpeg, .png, .gif (Max: 15MB)</p>
+          <p id="main_image_error" class="text-xs text-red-600 mt-1 hidden">Invalid file format!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dietary Tags Section -->
+    {% comment %} <div class="border-b pb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Dietary Tags</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for tag in dietary_tags %}
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" name="dietary_tags" value="{{ tag.id }}" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            <span class="ml-2 text-sm font-medium text-gray-700">{{ tag.name }}</span>
+          </label>
+        {% endfor %}
+      </div>
+      <p class="text-xs text-gray-500 mt-2">Select applicable dietary tags for this item</p>
+    </div> {% endcomment %}
+
+    <!-- Form Actions -->
+    <div class="flex justify-end gap-4 pt-4 border-t">
+      <a href="{% url 'admin_menuItems_list' %}" class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+        Cancel
+      </a>
+      <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        Save Menu Item
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.ckeditor.com/4.21.0/full/ckeditor.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // ---------------------------
+    // CKEditor Initialization
+    // ---------------------------
+    if ($('textarea[name="description"]').length) {
+        CKEDITOR.replace('description', {
+            height: 400,
+            toolbar: [
+                { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo'] },
+                { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+                { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'RemoveFormat'] },
+                { name: 'colors', items: ['TextColor', 'BGColor'] },
+                { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 
+                                             'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 
+                                             'Blockquote', 'CreateDiv'] },
+                { name: 'insert', items: ['HorizontalRule', 'Smiley', 'SpecialChar', 'Link', 'Unlink'] },
+                { name: 'tools', items: ['Maximize', 'ShowBlocks', 'Source'] }
+            ],
+            removePlugins: 'elementspath',
+            resize_enabled: true,
+            font_names: 'Arial;Comic Sans MS;Courier New;Georgia;Tahoma;Times New Roman;Verdana',
+            fontSize_sizes: '12/12px;14/14px;16/16px;18/18px;20/20px;24/24px;28/28px;32/32px;36/36px'
+        });
+    }
+
+    // ---------------------------
+    // File Validation
+    // ---------------------------
+    const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    const maxSize = 15 * 1024 * 1024; // 15MB
+
+    $('#main_image').on('change', function() {
+        const file = this.files[0];
+        const errorEl = $('#main_image_error');
+        if (file) {
+            if (!allowedFormats.includes(file.type)) {
+                errorEl.text('Invalid file format!').removeClass('hidden');
+                $(this).val('');
+            } else if (file.size > maxSize) {
+                errorEl.text('File size must be less than 15MB!').removeClass('hidden');
+                $(this).val('');
+            } else {
+                errorEl.addClass('hidden');
+            }
+        }
+    });
+
+    // ---------------------------
+    // Make dropdowns searchable with Select2
+    // ---------------------------
+    $('select[name="restaurant"], select[name="menu_section"], select[name="brand"]').select2({
+        width: '100%',
+        placeholder: 'Select an option',
+        allowClear: false
+    });
+
+    // ---------------------------
+    // Dynamic Menu Section Filtering
+    // ---------------------------
+    const restaurantSelect = $('select[name="restaurant"]');
+    const menuSectionSelect = $('select[name="menu_section"]');
+    const allOptions = menuSectionSelect.find('option').clone();
+
+    restaurantSelect.on('change', function() {
+        const restaurantId = $(this).val();
+        
+        if (restaurantId) {
+            // Filter options by data-restaurant-id
+            menuSectionSelect.html('<option value="">Select a menu section</option>');
+            
+            allOptions.each(function() {
+                if ($(this).attr('data-restaurant-id') == restaurantId) {
+                    menuSectionSelect.append($(this).clone());
+                }
+            });
+            
+            // Enable dropdown
+            menuSectionSelect.prop('disabled', false);
+            menuSectionSelect.select2();
+        } else {
+            // Reset if no restaurant selected
+            menuSectionSelect.html('<option value="">Select a restaurant first</option>');
+            menuSectionSelect.prop('disabled', true);
+            menuSectionSelect.select2();
+        }
+    });
+});
+</script>
+{% endblock %}

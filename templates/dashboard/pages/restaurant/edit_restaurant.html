@@ -1,0 +1,312 @@
+{% extends 'dashboard/components/base.html' %}
+
+{% load static %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Edit Restaurant</h1>
+    <a href="{% url 'admin_restaurant_list' %}" class="text-sm text-blue-600 hover:text-blue-800">Back to list</a>
+  </div>
+
+  <form method="post" action="{% url 'admin_restaurant_update' restaurant.id %}" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">Shop Name</label>
+        <input type="text" name="shop_name" value="{{ restaurant.restaurant_name }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">First Name</label>
+        <input type="text" name="first_name" value="{{ restaurant.user.first_name }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Last Name</label>
+        <input type="text" name="last_name" value="{{ restaurant.user.last_name }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Email</label>
+        <input type="email" name="email" value="{{ restaurant.user.email }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Phone</label>
+        <input type="text" name="phone" value="{{ restaurant.phone }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">Address</label>
+        <input type="text" name="address" value="{{ restaurant.address }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <!-- Province & District -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Province</label>
+        <select id="province" name="province" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required {% if request.user.role.role == 'staff' %}disabled{% endif %}>
+          <option value="">Select Province</option>
+          {% for prov in nepal_locations %}
+            <option value="{{ prov.province }}" {% if current_province_display == prov.province %}selected{% endif %}>
+              {{ prov.province }}
+            </option>
+          {% endfor %}
+        </select>
+        {% if request.user.role.role == 'staff' %}
+        <input type="hidden" name="province" value="{{ current_province_display }}">
+        <p class="text-red-600 text-sm font-medium mt-2">Can't be changed by staff</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">District</label>
+        <select id="district" name="city" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required {% if request.user.role.role == 'staff' %}disabled{% endif %}>
+          <option value="">Select District</option>
+        </select>
+        {% if request.user.role.role == 'staff' %}
+        <input type="hidden" name="city" value="{{ restaurant.city }}">
+        <p class="text-red-600 text-sm font-medium mt-2">Can't be changed by staff</p>
+        {% endif %}
+      </div>
+
+      <!-- Latitude and Longitude Fields - Optional -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Latitude</label>
+        <input type="text" 
+               name="latitude" 
+               id="latitude" 
+               value="{{ restaurant.latitude|default:'' }}"
+               class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" 
+               placeholder="e.g., 27.717245">
+        <p class="text-xs text-gray-500 mt-1">Optional: Click on map to set coordinates</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Longitude</label>
+        <input type="text" 
+               name="longitude" 
+               id="longitude" 
+               value="{{ restaurant.longitude|default:'' }}"
+               class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" 
+               placeholder="e.g., 85.323960">
+        <p class="text-xs text-gray-500 mt-1">Optional: Click on map to set coordinates</p>
+      </div>
+
+      <!-- Map Container -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Pick Location on Map</label>
+        <div id="map" style="height: 400px; width: 100%; border-radius: 0.5rem; border: 1px solid #e2e8f0;"></div>
+        <p class="text-xs text-gray-500 mt-2">Click anywhere on the map or drag the marker to set restaurant location (optional)</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">PAN Number</label>
+        <input type="text" name="pan_number" value="{{ restaurant.pan_number }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5" required>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Citizenship Number</label>
+        <input type="text" name="citizenship_number" value="{{ restaurant.citizenship_number }}" class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5">
+      </div>
+
+      <!-- QR Image Upload -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">Payment QR Code</label>
+        {% if restaurant.qr_image %}
+          <div class="mb-2">
+            <img src="{{ restaurant.qr_image.url }}" alt="QR Code" class="h-20 border p-1 rounded">
+          </div>
+        {% endif %}
+        <input type="file" name="qr_image" accept="image/*" class="mt-1 block w-full">
+      </div>
+
+      <!-- Files -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Shop Logo</label>
+        {% if restaurant.logo %}
+          <div class="mb-2">
+            <img src="{{ restaurant.logo.url }}" alt="logo" class="h-12">
+          </div>
+        {% endif %}
+        <input type="file" name="shop_logo" accept="image/*" class="mt-1 block w-full">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Shop Banner</label>
+        {% if restaurant.banner %}
+          <div class="mb-2">
+            <img src="{{ restaurant.banner.url }}" alt="banner" class="h-12">
+          </div>
+        {% endif %}
+        <input type="file" name="shop_banner" accept="image/*" class="mt-1 block w-full">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700">PAN Document (pdf/jpg/jpeg/png)</label>
+        {% if restaurant.pan_document %}
+          <div class="mb-2">
+            <a href="{{ restaurant.pan_document.url }}" class="text-blue-600 text-sm" target="_blank">View current document</a>
+          </div>
+        {% endif %}
+        <input type="file" name="pan_document" accept=".pdf,image/*" class="mt-1 block w-full">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Citizenship Front</label>
+        {% if restaurant.citizenship_front %}
+          <div class="mb-2">
+            <img src="{{ restaurant.citizenship_front.url }}" alt="front" class="h-12">
+          </div>
+        {% endif %}
+        <input type="file" name="citizenship_front" accept="image/*" class="mt-1 block w-full">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Citizenship Back</label>
+        {% if restaurant.citizenship_back %}
+          <div class="mb-2">
+            <img src="{{ restaurant.citizenship_back.url }}" alt="back" class="h-12">
+          </div>
+        {% endif %}
+        <input type="file" name="citizenship_back" accept="image/*" class="mt-1 block w-full">
+      </div>
+    </div>
+
+    <!-- Visibility Toggle -->
+    {% comment %} <div class="mt-2">
+      <label class="inline-flex items-center gap-2">
+        <input type="checkbox" name="is_visible" value="1"
+               {% if restaurant.is_active %}checked{% endif %} {% if request.user.role.role == 'staff' %}disabled{% endif %}>
+        <span class="text-gray-700 text-sm">Visible on Platform</span>
+      </label>
+      {% if request.user.role.role == 'staff' %}
+        <p class="text-gray-500 text-xs mt-1">Visibility cannot be changed by staff</p>
+      {% endif %}
+    </div> {% endcomment %}
+
+    <div class="pt-4">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Update Restaurant</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include Leaflet CSS and JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const locations = {{ nepal_locations|safe }};
+  const provinceSelect = document.getElementById('province');
+  const districtSelect = document.getElementById('district');
+  
+  // Store current values
+  const currentProvinceDisplay = "{{ current_province_display|default:'' }}";
+  const currentDistrict = "{{ restaurant.city|default:'' }}";
+  
+  // Function to populate districts based on selected province
+  function populateDistricts(provinceName) {
+    districtSelect.innerHTML = '<option value="">Select District</option>';
+    
+    if (provinceName) {
+      const prov = locations.find(p => p.province === provinceName);
+      if (prov && prov.districts) {
+        prov.districts.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d;
+          opt.textContent = d;
+          if (currentDistrict === d) {
+            opt.selected = true;
+          }
+          districtSelect.appendChild(opt);
+        });
+      }
+    }
+  }
+  
+  // Initial population of districts based on current province display name
+  if (currentProvinceDisplay) {
+    populateDistricts(currentProvinceDisplay);
+  }
+  
+  // Handle province change
+  provinceSelect.addEventListener('change', function() {
+    const selectedProvince = this.value;
+    populateDistricts(selectedProvince);
+  });
+  
+  // Initialize Map
+  let defaultLat = 27.717245;
+  let defaultLng = 85.323960;
+  
+  // Check if restaurant has existing coordinates
+  const existingLat = "{{ restaurant.latitude|default:'' }}";
+  const existingLng = "{{ restaurant.longitude|default:'' }}";
+  
+  if (existingLat && existingLng) {
+    defaultLat = parseFloat(existingLat);
+    defaultLng = parseFloat(existingLng);
+    // Set the input fields with existing values
+    document.getElementById('latitude').value = defaultLat.toFixed(6);
+    document.getElementById('longitude').value = defaultLng.toFixed(6);
+  }
+  
+  const map = L.map('map').setView([defaultLat, defaultLng], 13);
+  
+  // Add OpenStreetMap tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  
+  // Add draggable marker
+  let marker = L.marker([defaultLat, defaultLng], {
+    draggable: true
+  }).addTo(map);
+  
+  // Update marker position and form fields when map is clicked
+  map.on('click', function(e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    
+    document.getElementById('latitude').value = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
+    marker.setLatLng([lat, lng]);
+  });
+  
+  // Update form fields when marker is dragged
+  marker.on('dragend', function(e) {
+    const position = marker.getLatLng();
+    document.getElementById('latitude').value = position.lat.toFixed(6);
+    document.getElementById('longitude').value = position.lng.toFixed(6);
+  });
+  
+  // Optional validation - warn but don't prevent submission
+  const form = document.querySelector('form');
+  form.addEventListener('submit', function(e) {
+    const lat = document.getElementById('latitude').value;
+    const lng = document.getElementById('longitude').value;
+    
+    // Only validate if one field has a value and the other doesn't
+    if ((lat && !lng) || (!lat && lng)) {
+      if (!confirm('You have entered only one coordinate. Both latitude and longitude are needed for a complete location. Do you want to continue?')) {
+        e.preventDefault();
+        return false;
+      }
+    }
+    
+    // Validate coordinates are valid numbers if they're provided
+    if (lat && lng) {
+      if (isNaN(parseFloat(lat)) || isNaN(parseFloat(lng))) {
+        e.preventDefault();
+        alert('Please enter valid latitude and longitude coordinates (numbers only).');
+        return false;
+      }
+    }
+  });
+});
+</script>
+{% endblock %}
